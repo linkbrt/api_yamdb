@@ -35,9 +35,7 @@ class Title(models.Model):
     year = models.DateField()
     description = models.TextField()
     genre = models.ManyToManyField(
-        Genre, on_delete=models.SET_NULL,
-        blank=True, null=True,
-        related_name="genre")
+        Genre, related_name="genre")
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         blank=True, null=True,
@@ -59,7 +57,7 @@ class Review(models.Model):
         validators=[MaxValueValidator(1), MinValueValidator(10)])
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name="author")
+        related_name="user")
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
         related_name="title")
