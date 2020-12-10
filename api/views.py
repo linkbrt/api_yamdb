@@ -2,24 +2,20 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets
 
-from .models import Category, Genre, Review, Title, Title
+from .models import Category, Genre, Review, Title
 from .serializers import (CategorieSerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
+from users.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly
 
 
 class DefaultViewSet(
-            viewsets.ModelViewSet,
+            viewsets.ViewSet,
             mixins.CreateModelMixin,
             mixins.DestroyModelMixin,
             mixins.ListModelMixin):
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
-
-    def get_permissions(self):
-        if self.action == 'list':
-            permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-        else:
-            permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
 class CategoriesViewSet(DefaultViewSet):
@@ -54,15 +50,15 @@ def get_title(self):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = []
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly]
 
     def queryset(self):
-        title = get_title()
+        title = get_title(self)
         queryset = title.reviews.all()
         return queryset
 
     def perform_create(self, serializer):
-        title = get_title()
+        title = get_title(self)
         serializer.save(author=self.request.user, title=title)
 
 
@@ -71,12 +67,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = []
 
     def queryset(self):
-        title = get_title()
+        title = get_title(self)
         queryset = title.reviews.all()
         return queryset
 
     def perform_create(self, serializer):
-        title = get_title()
+        title = get_title(self)
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(
             author=self.request.user, title=title, review=review)
