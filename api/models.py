@@ -20,6 +20,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=100)
 
     class Meta:
         ordering = ["-id"]
@@ -33,7 +34,9 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=200)
     year = models.DateField()
-    # rating
+    rating = models.PositiveSmallIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+    )
     description = models.TextField()
     genre = models.ManyToManyField(
         Genre, related_name="genre")
@@ -55,7 +58,7 @@ class Review(models.Model):
     text = models.TextField()
     # author ниже
     score = models.IntegerField(
-        validators=[MaxValueValidator(1), MinValueValidator(10)])
+        validators=[MinValueValidator(1), MaxValueValidator(10)])
     pub_date = models.DateField(auto_now_add=True)
 
     # связь с моделями для удаления

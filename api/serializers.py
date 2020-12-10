@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Categories, Comment, Genres, Review, Titles
+from .models import Category, Comment, Genre, Review, Title
 
 
 User = get_user_model()
@@ -11,21 +11,21 @@ class CategorieSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = Categories
+        model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = Genres
+        model = Genre
 
 
 class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-        model = Titles
+        model = Title
 
 
 class ReviewSerializer(serializers.ModelSerializer):
