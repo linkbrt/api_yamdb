@@ -3,11 +3,18 @@ from rest_framework import serializers
 from .models import Confirm, Profile
 from .validators import IsExistsValidator
 
-
 STAFF_GROUPS = ('moderator', 'admin')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+
+    def validate_role(self, value):
+        user = self.context.user
+        if user.role == 'admin':
+            return value
+        if user.role == 'moderator':
+            return 'moderator'
+        return 'user'
 
     class Meta:
         model = Profile

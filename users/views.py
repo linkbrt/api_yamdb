@@ -1,7 +1,7 @@
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.utils.crypto import get_random_string
-from rest_framework import viewsets
+from rest_framework import decorators, viewsets
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
@@ -18,6 +18,23 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     lookup_field = 'username'
     permission_classes = (IsAuthenticated, IsAdminOrDeny, )
+
+
+@decorators.api_view(('GET', 'PATCH', ), )
+@decorators.permission_classes([IsAuthenticated, ])
+def api_get_profile(request):
+    if request.method == 'GET':
+        serializer = ProfileSerializer(request.user)
+        return Response(serializer.data, status=200)
+    elif request.method == 'PATCH':
+        serializer = ProfileSerializer(instance=request.user,
+                                       data=request.data,
+                                       context=request,
+                                       partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(data=serializer.data, status=200)
+        return Response(serializer.errors, status=400)
 
 
 class CreateConfirmCodeMixin(viewsets.ViewSet, CreateAPIView):
