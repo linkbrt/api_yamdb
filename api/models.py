@@ -33,7 +33,7 @@ class Genres(models.Model):
 class Titles(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField()
-    rating = models.PositiveSmallIntegerField(default=None,
+    rating = models.PositiveSmallIntegerField(
         choices=(
         (1, 1),
         (2, 2),
@@ -47,7 +47,7 @@ class Titles(models.Model):
         (10, 10),
         ),
     )
-    description = models.TextField(max_length=500, default=None)
+    description = models.TextField(max_length=500)
     genre = models.ForeignKey(
             Genres, 
             models.SET_NULL,

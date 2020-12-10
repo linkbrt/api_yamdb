@@ -15,11 +15,11 @@ class BaseListCreateDestroyViewSet(
     search_fields = ['=name']
 
 
-    def get_permissions(self):
-        if self.action == 'list':
-            permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-        else:
-            permission_classes = [permissions.IsAdminUser]
+    #def get_permissions(self):
+        #if self.action == 'list':
+            #permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+        #else:
+            #permission_classes = [permissions.IsAdminUser]
 
 
 class CategoriesViewSet(BaseListCreateDestroyViewSet):

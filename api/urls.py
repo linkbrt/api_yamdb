@@ -7,9 +7,9 @@ from rest_framework_simplejwt.views import (
     ) 
  
 v1_router = routers.DefaultRouter() 
-v1_router.register('categories/', CategoriesViewSet, basename='categories')
-v1_router.register('genres/', GenresViewSet, basename='genres')
-v1_router.register('titles/', TitlesViewSet, basename='titles')
+v1_router.register('categories', CategoriesViewSet, basename='categories')
+v1_router.register('genres', GenresViewSet, basename='genres')
+v1_router.register('titles', TitlesViewSet, basename='titles')
  
 urlpatterns = [ 
     path('v1/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), 
