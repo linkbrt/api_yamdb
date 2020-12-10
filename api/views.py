@@ -8,13 +8,12 @@ from .serializers import (CategorieSerializer, CommentSerializer,
 
 
 class DefaultViewSet(
-            viewsets.ModelViewSet, 
+            viewsets.ModelViewSet,
             mixins.CreateModelMixin,
             mixins.DestroyModelMixin,
             mixins.ListModelMixin):
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
-
 
     def get_permissions(self):
         if self.action == 'list':
