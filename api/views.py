@@ -2,12 +2,11 @@ from rest_framework import viewsets, mixins
 from rest_framework import permissions
 from .models import Categories, Genres, Titles
 from .serializers import CategorieSerializer, GenreSerializer, TitleSerializer
-#from django.shortcuts import get_object_or_404
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 
 
-class DefaultViewSet(
+class BaseListCreateDestroyViewSet(
             viewsets.ModelViewSet, 
             mixins.CreateModelMixin,
             mixins.DestroyModelMixin,
@@ -23,19 +22,19 @@ class DefaultViewSet(
             permission_classes = [permissions.IsAdminUser]
 
 
-class CategoriesViewSet(DefaultViewSet):
+class CategoriesViewSet(BaseListCreateDestroyViewSet):
     queryset = Categories.objects.all()
     serializer_class = CategorieSerializer
 
 
-class GenresViewSet(DefaultViewSet):
+class GenresViewSet(BaseListCreateDestroyViewSet):
     queryset = Genres.objects.all()
     serializer_class = GenreSerializer
 
 
-class TitlesViewSet(DefaultViewSet,
-            mixins.RetrieveModelMixin,
-            mixins.UpdateModelMixin):
+class TitlesViewSet(BaseListCreateDestroyViewSet,
+                    mixins.RetrieveModelMixin,
+                    mixins.UpdateModelMixin):
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Titles.objects.all()
     serializer_class = TitleSerializer
