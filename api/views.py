@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets
 
-from .models import Categories, Genres, Review, Title, Titles
+from .models import Category, Genre, Review, Title, Title
 from .serializers import (CategorieSerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
@@ -23,12 +23,12 @@ class DefaultViewSet(
 
 
 class CategoriesViewSet(DefaultViewSet):
-    queryset = Categories.objects.all()
+    queryset = Category.objects.all()
     serializer_class = CategorieSerializer
 
 
 class GenresViewSet(DefaultViewSet):
-    queryset = Genres.objects.all()
+    queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
 
@@ -36,7 +36,7 @@ class TitlesViewSet(DefaultViewSet,
             mixins.RetrieveModelMixin,
             mixins.UpdateModelMixin):
     http_method_names = ['get', 'post', 'patch', 'delete']
-    queryset = Titles.objects.all()
+    queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = [
