@@ -43,14 +43,13 @@ class TitlesViewSet(DefaultViewSet,
                 ]
 
 
-def get_title(self):
-    title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-    return title
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly]
+
+    def get_title(self):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title
 
     def queryset(self):
         title = get_title(self)
@@ -65,6 +64,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = []
+
+    def get_title(self):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title
 
     def queryset(self):
         title = get_title(self)
