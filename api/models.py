@@ -21,7 +21,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100)
+    slug = models.SlugField(max_length=100, default = None)
 
     class Meta:
         ordering = ["-id"]
@@ -34,9 +34,9 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=200)
-    year = models.DateField()
+    year = models.IntegerField()
     rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        validators=[MinValueValidator(1), MaxValueValidator(10)], default = 1
     )
     description = models.TextField()
     genre = models.ManyToManyField(
