@@ -9,7 +9,7 @@ from users.permissions import IsAdminOrReadOnly, IsOwnerOrReadOnly, IsStaffOrRea
 
 
 class DefaultViewSet(
-            viewsets.ViewSet,
+            viewsets.ModelViewSet,
             mixins.CreateModelMixin,
             mixins.DestroyModelMixin,
             mixins.ListModelMixin):
