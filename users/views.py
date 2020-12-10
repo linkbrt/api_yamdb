@@ -1,6 +1,7 @@
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
 from django.utils.crypto import get_random_string
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import decorators, viewsets
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -18,6 +19,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     lookup_field = 'username'
     permission_classes = (IsAuthenticated, IsAdminOrDeny, )
+    filter_backends = (DjangoFilterBackend, )
+    filterset_fields = ('username', )
 
 
 @decorators.api_view(('GET', 'PATCH', ), )
