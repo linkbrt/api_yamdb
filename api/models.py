@@ -33,6 +33,7 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=200)
     year = models.DateField()
+    # rating
     description = models.TextField()
     genre = models.ManyToManyField(
         Genre, related_name="genre")
@@ -52,21 +53,21 @@ class Title(models.Model):
 
 class Review(models.Model):
     text = models.TextField()
-    pub_date = models.DateField(auto_now_add=True)
+    # author ниже
     score = models.IntegerField(
         validators=[MaxValueValidator(1), MinValueValidator(10)])
+    pub_date = models.DateField(auto_now_add=True)
+
+    # связь с моделями для удаления
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name="user")
+        related_name="reviews")
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
-        related_name="title")
-    review = models.ForeignKey(
-        Title, on_delete=models.CASCADE,
-        related_name='review')
+        related_name="reviews")
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ["-pub_date"]
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
 
@@ -76,15 +77,24 @@ class Review(models.Model):
 
 class Comment(models.Model):
     text = models.TextField()
+    # author ниже
+    pub_date = models.DateField('Дата публикации', auto_now_add=True)
+
+    # связь с моделями для удаления
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name="author"
-        )
+        related_name="comments")
+    title = models.ForeignKey(
+        Title, on_delete=models.CASCADE,
+        related_name="comments")
+    review = models.ForeignKey(
+        Review, on_delete=models.CASCADE,
+        related_name="comments")
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ["-pub_date"]
         verbose_name = 'Комментарий'
-        verbose_name_plural = 'Комментирии'
+        verbose_name_plural = 'Комментариев'
 
     def __str__(self):
         return self.text
