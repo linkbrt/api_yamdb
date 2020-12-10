@@ -38,9 +38,10 @@ class Title(models.Model):
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)], default = 1
     )
-    description = models.TextField()
+    description = models.TextField(blank=True)
     genre = models.ManyToManyField(
-        Genre, related_name="genre")
+        Genre, related_name="genre",
+        blank=True, null=True)
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         blank=True, null=True,
