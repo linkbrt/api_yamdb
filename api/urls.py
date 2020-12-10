@@ -13,17 +13,17 @@ router_v1 = routers.SimpleRouter()
 route = r'v1/titles/(?P<title_id>\d+)/reviews'
 
 router_v1.register(
-    route, ReviewViewSet, base_name='review')
+    route, ReviewViewSet, basename='review')
 router_v1.register(
     route + r'/(?P<review_id>\d+)',
-    ReviewViewSet, base_name='review')
+    ReviewViewSet, basename='review')
 
 router_v1.register(
     route + r'/(?P<review_id>\d+)/comments',
-    CommentViewSet, base_name='comment')
+    CommentViewSet, basename='comment')
 router_v1.register(
     route + r'/(?P<review_id>\d+)/comments/(?P<comment_id>\d+)',
-    CommentViewSet, base_name='comment')
+    CommentViewSet, basename='comment')
 
 urlpatterns = [
     path('v1/', include(v1_router.urls))
