@@ -11,14 +11,14 @@ class CategorieSerializer(serializers.ModelSerializer):
 
 
     class Meta:
-        fields = ['name', 'slug']
+        fields = ('name', 'slug', )
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = ['name', 'slug']
+        fields = ('name', 'slug', )
         model = Genre
 
 
@@ -29,7 +29,7 @@ class TitleSerializer(serializers.ModelSerializer):
                                             queryset=Category.objects.all())
 
     class Meta:
-        fields = '__all__'
+        fields = ('id', 'category', 'genre', 'name', 'year', )
         model = Title
 
 

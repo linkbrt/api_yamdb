@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, viewsets
-from users.permissions import (IsAdminOrReadOnly, IsOwnerOrReadOnly,
+from rest_framework import filters, mixins, permissions, viewsets, generics
+from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
                                IsStaffOrReadOnly)
 from rest_framework.response import Response
 from .models import Category, Genre, Review, Title
@@ -14,26 +14,33 @@ class DefaultViewSet(
             mixins.CreateModelMixin,
             mixins.DestroyModelMixin,
             mixins.ListModelMixin):
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['=name']
+    filter_backends = [filters.SearchFilter, ]
+    search_fields = ['=name', ]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
-    lookup_field = 'slug'
 
 
-class CategoriesViewSet(DefaultViewSet):
+class CategoriesViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMixin, mixins.DestroyModelMixin):
     queryset = Category.objects.all()
     serializer_class = CategorieSerializer
+    filter_backends = [filters.SearchFilter, ]
+    search_fields = ['=name', ]
+    lookup_field = 'slug'
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
-class GenresViewSet(DefaultViewSet):
+class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMixin, mixins.DestroyModelMixin):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    filter_backends = [filters.SearchFilter, ]
+    search_fields = ['=name', ]
+    lookup_field = 'slug'
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
  
 class TitlesViewSet(DefaultViewSet,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin):
-    http_method_names = ['get', 'post', 'patch', 'delete']
+    # http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
