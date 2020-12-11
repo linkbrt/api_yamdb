@@ -15,7 +15,7 @@ class DefaultViewSet(
             mixins.ListModelMixin):
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
 class CategoriesViewSet(DefaultViewSet):
