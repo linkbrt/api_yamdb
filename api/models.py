@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils.text import slugify
 
 
 User = get_user_model()
@@ -9,6 +10,10 @@ User = get_user_model()
 class Category(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(default=name, unique=True, max_length=200)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-id"]
@@ -22,6 +27,10 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(default=name, unique=True, max_length=100, blank=True, null=True)
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-id"]
