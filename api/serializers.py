@@ -1,10 +1,5 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-<<<<<<< HEAD
-from .models import Categories, Genres, Titles
-from rest_framework.validators import UniqueValidator
-=======
->>>>>>> develop
 
 from .models import Category, Comment, Genre, Review, Title
 
@@ -14,26 +9,17 @@ User = get_user_model()
 
 class CategorieSerializer(serializers.ModelSerializer):
 
+
     class Meta:
-        fields = '__all__'
-<<<<<<< HEAD
-        model = Categories
-        #validators = [UniqueValidator(queryset=Categories.objects.all())]
-=======
+        fields = ['name', 'slug']
         model = Category
->>>>>>> develop
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
-<<<<<<< HEAD
-        model = Genres
-        #validators = [UniqueValidator(queryset=Genres.objects.all())]
-=======
+        fields = ['name', 'slug']
         model = Genre
->>>>>>> develop
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -44,10 +30,6 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
-<<<<<<< HEAD
-        model = Titles
-        #validators = [UniqueValidator(queryset=Titles.objects.all())]
-=======
         model = Title
 
 
@@ -85,4 +67,3 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         # fields = '__all__'
         fields = ['id', 'text', 'author', 'pub_date']
->>>>>>> develop
