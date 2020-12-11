@@ -26,12 +26,14 @@ class ProfileManager(BaseUserManager):
         """Create and save a regular User with the given email and password."""
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('role', 'user')
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
         """Create and save a SuperUser with the given email and password."""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', 'admin')
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -42,7 +44,7 @@ class ProfileManager(BaseUserManager):
 
 
 class Profile(AbstractUser):
-    username = models.CharField(max_length=30, blank=True)
+    username = models.CharField(max_length=30, blank=True, unique=True)
     password = models.CharField(max_length=128)
     email = models.EmailField(unique=True)
     bio = models.TextField(max_length=200, blank=True)

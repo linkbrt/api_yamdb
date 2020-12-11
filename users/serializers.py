@@ -8,18 +8,21 @@ STAFF_GROUPS = ('moderator', 'admin')
 
 class ProfileSerializer(serializers.ModelSerializer):
 
+    class Meta:
+        model = Profile
+        fields = ('first_name', 'last_name', 'username',
+                  'email', 'bio', 'role')
+
+
+class MyOwnProfileSerializer(ProfileSerializer):
+
     def validate_role(self, value):
-        user = self.context.user
+        user = self.context['request'].user
         if user.role == 'admin':
             return value
         if user.role == 'moderator':
             return 'moderator'
         return 'user'
-
-    class Meta:
-        model = Profile
-        fields = ('first_name', 'last_name', 'username',
-                  'email', 'bio', 'role')
 
 
 class CreateConfirmCodeSerializer(serializers.ModelSerializer):

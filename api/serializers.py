@@ -9,6 +9,9 @@ User = get_user_model()
 
 class CategorieSerializer(serializers.ModelSerializer):
 
+    genre = serializers.SlugRelatedField(slug_field='slug',
+                                         queryset=Category.objects.all())
+
     class Meta:
         fields = '__all__'
         model = Category

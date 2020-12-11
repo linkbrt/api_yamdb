@@ -9,9 +9,9 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Confirm, Profile
-from .permissions import IsAdminOrDeny
+from .permissions import IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly
 from .serializers import (CreateConfirmCodeSerializer, ProfileSerializer,
-                          RetrieveTokenSerializer)
+                          RetrieveTokenSerializer, MyOwnProfileSerializer)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -24,13 +24,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 @decorators.api_view(('GET', 'PATCH', ), )
-@decorators.permission_classes([IsAuthenticated, ])
+@decorators.permission_classes([IsAuthenticated, IsOwnerOrReadOnly])
 def api_get_profile(request):
     if request.method == 'GET':
-        serializer = ProfileSerializer(request.user)
+        serializer = MyOwnProfileSerializer(request.user)
         return Response(serializer.data, status=200)
     elif request.method == 'PATCH':
-        serializer = ProfileSerializer(instance=request.user,
+        serializer = MyOwnProfileSerializer(instance=request.user,
                                        data=request.data,
                                        context=request,
                                        partial=True)

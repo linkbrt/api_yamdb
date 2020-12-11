@@ -8,7 +8,7 @@ User = get_user_model()
 
 class Category(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, max_length=200)
+    slug = models.SlugField(default=name, unique=True, max_length=200)
 
     class Meta:
         ordering = ["-id"]
@@ -21,7 +21,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100, blank=True, null=True)
+    slug = models.SlugField(default=name, unique=True, max_length=100, blank=True, null=True)
 
     class Meta:
         ordering = ["-id"]

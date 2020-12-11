@@ -17,7 +17,7 @@ class IsStaffOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user in STAFF_GROUPS
+        return request.user.role in STAFF_GROUPS
 
 
 class IsModeratorOrReadOnly(permissions.BasePermission):
@@ -31,9 +31,9 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user.role == 'admin'
+        return bool(request.user and request.user.role == 'admin')
 
 
 class IsAdminOrDeny(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == 'admin'
+        return bool(request.user and request.user.role == 'admin')
