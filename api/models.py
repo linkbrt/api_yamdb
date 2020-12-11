@@ -42,7 +42,7 @@ class Title(models.Model):
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
         Genre, related_name="genre",
-        blank=True, null=True)
+        blank=True)
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         blank=True, null=True,
