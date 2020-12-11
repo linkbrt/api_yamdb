@@ -34,8 +34,7 @@ class TitleSerializer(serializers.ModelSerializer):
         slug_field='slug',queryset=Category.objects.all())
 
     class Meta:
-        # fields = '__all__'
-        fields = ['name', 'year', 'description', 'genre', 'category']
+        fields = ('id', 'category', 'genre', 'name', 'year', )
         model = Title
 
 
@@ -59,8 +58,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        # fields = '__all__'
-        fields = ['id', 'text', 'author', 'score', 'pub_date']
+        fields = '__all__'
+        # fields = ['id', 'text', 'title', 'author', 'score', 'pub_date']
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -71,5 +70,5 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        # fields = '__all__'
-        fields = ['id', 'text', 'author', 'pub_date']
+        fields = '__all__'
+        # fields = ['id', 'text', 'author', 'pub_date']
