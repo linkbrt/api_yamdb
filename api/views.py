@@ -17,6 +17,7 @@ class DefaultViewSet(
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+    lookup_field = 'slug'
 
 
 class CategoriesViewSet(DefaultViewSet):
