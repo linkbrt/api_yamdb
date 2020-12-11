@@ -15,18 +15,21 @@ class DefaultViewSet(
             mixins.DestroyModelMixin,
             mixins.ListModelMixin):
     filter_backends = [filters.SearchFilter]
-    search_fields = ['=name']
-    # permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+    search_fields = ['name']
+    # lookup_field = 'slug'
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
 class CategoriesViewSet(DefaultViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorieSerializer
+    lookup_field = 'slug'
 
 
 class GenresViewSet(DefaultViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    lookup_field = 'slug'
 
 
 class TitlesViewSet(DefaultViewSet,
@@ -34,6 +37,7 @@ class TitlesViewSet(DefaultViewSet,
                     mixins.UpdateModelMixin):
     http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Title.objects.all()
+    lookup_field = 'slug'
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = [
@@ -49,10 +53,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly, IsStaffOrReadOnly]
 
-    # def get_title(self):
-    #     title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-    #     return title
-
     def queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         queryset = title.reviews.all()
@@ -67,10 +67,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly, IsStaffOrReadOnly]
-
-    # def get_title(self):
-    #     title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-    #     return title
 
     def queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))

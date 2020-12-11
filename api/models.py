@@ -8,7 +8,7 @@ User = get_user_model()
 
 class Category(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(default=name, unique=True, max_length=200)
+    slug = models.SlugField(default='slug', unique=True, max_length=200)
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name, allow_unicode=True)
@@ -25,7 +25,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(default=name, unique=True, max_length=100, blank=True, null=True)
+    slug = models.SlugField(default='slug', unique=True, max_length=100, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name, allow_unicode=True)
@@ -43,14 +43,11 @@ class Genre(models.Model):
 class Title(models.Model):
     name = models.CharField(max_length=200)
     year = models.IntegerField(blank=True, null=True)
-    rating = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)],
-        blank=True, null=True,
-    )
+    # rating
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
         Genre, related_name="genre",
-        blank=True, null=True)
+        blank=True)
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         blank=True, null=True,

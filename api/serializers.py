@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-
+from django.shortcuts import get_object_or_404
 from .models import Category, Comment, Genre, Review, Title
 
 
@@ -9,25 +9,28 @@ User = get_user_model()
 
 class CategorieSerializer(serializers.ModelSerializer):
 
-    # genre = serializers.SlugRelatedField(source='author.username',
-    #                                      queryset=Category.objects.all())
-
     class Meta:
-        fields = '__all__'
+        # fields = '__all__'
         model = Category
+        fields = ['name', 'slug']        
 
 
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        fields = '__all__'
+        # fields = '__all__'
         model = Genre
+        fields = ['name', 'slug']
 
 
 class TitleSerializer(serializers.ModelSerializer):
 
+    category = CategorieSerializer()
+    genre = GenreSerializer(many=True, read_only=True)
+
     class Meta:
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['name', 'year', 'rating', 'description', 'genre', 'category']
         model = Title
 
 
