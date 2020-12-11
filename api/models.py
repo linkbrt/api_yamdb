@@ -7,13 +7,8 @@ User = get_user_model()
 
 
 class Category(models.Model):
-<<<<<<< HEAD
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(default='slug', unique=True, max_length=200)
-=======
     name = models.CharField(max_length=200, unique=True, )
     slug = models.SlugField(default=None, unique=True, max_length=200)
->>>>>>> develop
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -30,13 +25,8 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
-<<<<<<< HEAD
     name = models.CharField(max_length=200)
     slug = models.SlugField(default='slug', unique=True, max_length=100, blank=True, null=True)
-=======
-    name = models.CharField(max_length=200, unique=True)
-    slug = models.SlugField(default=None, unique=True, max_length=100, blank=True, null=True)
->>>>>>> develop
 
     def save(self, *args, **kwargs):
         if not self.slug:
