@@ -7,7 +7,7 @@ User = get_user_model()
 
 class Category(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(unique=True, max_length=200)
+    slug = models.SlugField(default=name, unique=True, max_length=200)
 
     class Meta:
         ordering = ["-id"]
@@ -20,7 +20,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100)
+    slug = models.SlugField(default=name, unique=True, max_length=100, blank=True, null=True)
 
     class Meta:
         ordering = ["-id"]
@@ -33,13 +33,15 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=200)
-    year = models.DateField()
+    year = models.IntegerField(blank=True, null=True)
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)],
+        blank=True, null=True,
     )
-    description = models.TextField()
+    description = models.TextField(blank=True)
     genre = models.ManyToManyField(
-        Genre, related_name="genre")
+        Genre, related_name="genre",
+        blank=True)
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         blank=True, null=True,
