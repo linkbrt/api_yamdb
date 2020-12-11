@@ -1,11 +1,12 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets, generics
+from rest_framework.response import Response
 from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
                                IsStaffOrReadOnly)
 
 from .models import Category, Genre, Review, Title
-from .serializers import (CategorieSerializer, CommentSerializer,
+from .serializers import (CategorieSerializer, CommentSerializer, CreateTitleSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
 
@@ -23,7 +24,7 @@ class CategoriesViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListMod
     queryset = Category.objects.all()
     serializer_class = CategorieSerializer
     filter_backends = [filters.SearchFilter, ]
-    search_fields = ['=name', ]
+    search_fields = ['name', ]
     lookup_field = 'slug'
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
@@ -32,7 +33,7 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMi
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = [filters.SearchFilter, ]
-    search_fields = ['=name', ]
+    search_fields = ['name', ]
     lookup_field = 'slug'
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
@@ -40,9 +41,8 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMi
 class TitlesViewSet(DefaultViewSet,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin):
-    # http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+    serializer_class = CreateTitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = [
                 'category',
@@ -50,6 +50,13 @@ class TitlesViewSet(DefaultViewSet,
                 'name',
                 'year'
                 ]
+
+    '''def create(self, request, *args, **kwargs):
+        genres = request.data['genre'].split(', ')
+        serializer = CreateTitleSerializer(data=request.data)
+        print(serializer.data)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=201, headers=headers)'''
 
 
 def get_title(self):

@@ -1,4 +1,6 @@
+from typing import OrderedDict
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from rest_framework import serializers
 
 from .models import Category, Comment, Genre, Review, Title
@@ -16,6 +18,10 @@ class CategorieSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
 
+    def validate_genre(self, value):
+        print(value)
+        return value
+
     class Meta:
         fields = ('name', 'slug', )
         model = Genre
@@ -23,13 +29,26 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
 
-    genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True)
+    genre = GenreSerializer(source='genre.slug', many=True)
+    category = CategorieSerializer(source='category.slug')
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
+        model = Title
+
+
+class CreateTitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(slug_field='slug__icontains',
+                                         queryset=Genre.objects.all(),
+                                         many=True,
+                                         validators=[])
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
 
     class Meta:
-        fields = ('id', 'category', 'genre', 'name', 'year', )
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
         model = Title
+        validators = []
 
 
 class ReviewSerializer(serializers.ModelSerializer):
