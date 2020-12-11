@@ -7,11 +7,17 @@ User = get_user_model()
 
 
 class Category(models.Model):
+<<<<<<< HEAD
     name = models.CharField(max_length=200)
     slug = models.SlugField(default='slug', unique=True, max_length=200)
+=======
+    name = models.CharField(max_length=200, unique=True, )
+    slug = models.SlugField(default=None, unique=True, max_length=200)
+>>>>>>> develop
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name, allow_unicode=True)
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -24,11 +30,17 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+<<<<<<< HEAD
     name = models.CharField(max_length=200)
     slug = models.SlugField(default='slug', unique=True, max_length=100, blank=True, null=True)
+=======
+    name = models.CharField(max_length=200, unique=True)
+    slug = models.SlugField(default=None, unique=True, max_length=100, blank=True, null=True)
+>>>>>>> develop
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name, allow_unicode=True)
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
 
     class Meta:

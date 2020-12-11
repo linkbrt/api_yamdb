@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from django.utils.text import slugify
 
 from .models import Confirm, Profile
 from .validators import IsExistsValidator

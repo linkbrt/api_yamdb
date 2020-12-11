@@ -18,6 +18,7 @@ class DefaultViewSet(
     search_fields = ['name']
     # lookup_field = 'slug'
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+    lookup_field = 'slug'
 
 
 class CategoriesViewSet(DefaultViewSet):
