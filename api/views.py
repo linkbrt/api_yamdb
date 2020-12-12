@@ -4,7 +4,7 @@ from rest_framework import filters, mixins, permissions, viewsets, generics, sta
 from rest_framework.response import Response
 from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
                                IsStaffOrReadOnly)
-
+from rest_framework.response import Response
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorieSerializer, CommentSerializer, CreateTitleSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
@@ -17,7 +17,8 @@ class DefaultViewSet(
             mixins.ListModelMixin):
     filter_backends = [filters.SearchFilter, ]
     search_fields = ['=name', ]
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
 class CategoriesViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMixin, mixins.DestroyModelMixin):
@@ -65,35 +66,36 @@ class TitlesViewSet(viewsets.ViewSet, generics.ListCreateAPIView, mixins.Destroy
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
-def get_title(self):
-    title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-    return title
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
+    # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly, IsStaffOrReadOnly]
+    # lookup_field = 'id'
 
     def queryset(self):
         title = get_title(self)
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title = get_title(self)
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly, IsStaffOrReadOnly]
+    # lookup_field = 'id'
 
-    def queryset(self):
-        title = get_title(self)
-        queryset = title.reviews.all()
+    def get_queryset(self):
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        queryset = review.comments.all()
+        # queryset = Comment.objects.filter(review=review)
         return queryset
 
     def perform_create(self, serializer):
-        title = get_title(self)
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(
             author=self.request.user, title=title, review=review)
