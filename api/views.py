@@ -2,8 +2,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets, generics, status
 from rest_framework.response import Response
-from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, 
-                               IsOwnerOrReadOnly,
+from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrStaffOrReadOnly,
                                IsStaffOrReadOnly)
 from rest_framework.response import Response
 from .models import Category, Genre, Review, Title
@@ -46,6 +45,9 @@ class TitlesViewSet(viewsets.ViewSet,
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, 
                           IsAdminOrReadOnly]
 
+    def get_queryset(self):
+        return super().get_queryset().order_by('-id')
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return TitleSerializer
@@ -79,7 +81,7 @@ class TitlesViewSet(viewsets.ViewSet,
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, 
-                        status=status.HTTP_201_CREATED, 
+                        status=status.HTTP_201_CREATED,
                         headers=headers)
 
 
@@ -87,12 +89,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
     # queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsOwnerOrReadOnly, IsStaffOrReadOnly]
+                          IsOwnerOrStaffOrReadOnly, ]
     # lookup_field = 'id'
 
-    def queryset(self):
-        title = get_title(self)
-        return title.reviews.all()
+    def get_queryset(self):
+        queryset = get_object_or_404(Title, pk=self.kwargs['title_id']).reviews.all()
+        return queryset
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -101,15 +103,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
-                          IsOwnerOrReadOnly, IsStaffOrReadOnly]
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrStaffOrReadOnly, )
     # lookup_field = 'id'
 
     def get_queryset(self):
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
-        queryset = review.comments.all()
-        # queryset = Comment.objects.filter(review=review)
-        return queryset
+        return review.comments.all()
 
     def perform_create(self, serializer):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
