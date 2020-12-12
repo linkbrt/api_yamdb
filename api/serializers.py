@@ -1,9 +1,7 @@
-from typing import OrderedDict
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
-from django.http.request import QueryDict
 from rest_framework import serializers
 from django.db.models import Avg
+from rest_framework.fields import CurrentUserDefault
 from .models import Category, Comment, Genre, Review, Title
 
 
@@ -11,7 +9,6 @@ User = get_user_model()
 
 
 class CategorieSerializer(serializers.ModelSerializer):
-
 
     class Meta:
         # fields = '__all__'
@@ -31,9 +28,15 @@ class TitleSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True, )
     category = CategorieSerializer()
+    rating = serializers.SerializerMethodField(default=None)
+
+    def get_rating(self, obj):
+        return Review.objects.annotate(
+                rating=Avg('score')
+                ).order_by('-id')
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category', 'rating', )
         model = Title
 
 
@@ -41,30 +44,17 @@ class CreateTitleSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True, required=False)
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
-    rating = serializers.SerializerMethodField(default=None)
-
-    #def validate(self, data):
-        #title_id = self.context['view'].kwargs.get('title_id')
-        #title = self.context['view'].kwargs.get('title')
-        #title_review = Review.objects.filter(title = title_id)
-        #if not title_review.exists():
-            #return title['resuls'].rating == None
-        
 
     class Meta:
-        fields = ('id', 'category', 'genre', 'name', 'year', 'rating')
+        fields = ('id', 'category', 'genre', 'name', 'year', 'description')
         model = Title
-    
-    def get_rating(self, obj):
-        return Review.objects.annotate(
-                rating=Avg('score')
-                ).order_by('-id')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         slug_field='username',
         read_only=True,
+        default=CurrentUserDefault(),
     )
 
     title = serializers.SlugRelatedField(
