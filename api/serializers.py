@@ -1,4 +1,7 @@
+from typing import OrderedDict
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.http.request import QueryDict
 from rest_framework import serializers
 from .models import Category, Comment, Genre, Review, Title
 
@@ -24,17 +27,34 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
 
-    # category = CategorieSerializer()
-    # genre = GenreSerializer(many=True, read_only=True)
-
-    genre = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Genre.objects.all(), many=True)
-    category = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Category.objects.all())
+    genre = GenreSerializer(source='slug',
+                            many=True,)
+    category = CategorieSerializer(source='slug')
 
     class Meta:
-        fields = ('id', 'category', 'genre', 'name', 'year', )
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
         model = Title
+
+
+class CreateTitleSerializer(serializers.ModelSerializer):
+    genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True)
+    category = serializers.SlugRelatedField(slug_field='slug',
+                                            queryset=Category.objects.all())
+
+    class Meta:
+        fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
+        model = Title
+
+    '''def __init__(self, instance=None, data=None, **kwargs):
+        in_data = {**data}
+        in_data['genre'] = data['genre'].split(', ')
+        in_data['name'] = data['name']
+        in_data['category'] = data['category']
+        print(in_data)
+        super().__init__(instance=instance, data=in_data, **kwargs)'''
+
+    '''def to_representation(self, instance):
+        return TitleSerializer(instance)'''
 
 
 class ReviewSerializer(serializers.ModelSerializer):

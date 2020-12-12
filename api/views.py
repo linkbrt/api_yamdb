@@ -1,11 +1,12 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets, generics
-from users.permissions import (
-    IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly)
+from rest_framework.response import Response
+from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
+                               IsStaffOrReadOnly)
 
-from .models import Category, Genre, Review, Title, Comment
-from .serializers import (CategorieSerializer, CommentSerializer,
+from .models import Category, Genre, Review, Title
+from .serializers import (CategorieSerializer, CommentSerializer, CreateTitleSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
 
@@ -24,7 +25,7 @@ class CategoriesViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListMod
     queryset = Category.objects.all()
     serializer_class = CategorieSerializer
     filter_backends = [filters.SearchFilter, ]
-    search_fields = ['=name', ]
+    search_fields = ['name', ]
     lookup_field = 'slug'
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
@@ -33,18 +34,14 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMi
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     filter_backends = [filters.SearchFilter, ]
-    search_fields = ['=name', ]
+    search_fields = ['name', ]
     lookup_field = 'slug'
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
-class TitlesViewSet(DefaultViewSet,
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin):
-    # http_method_names = ['get', 'post', 'patch', 'delete']
+class TitlesViewSet(viewsets.ViewSet, generics.ListCreateAPIView, mixins.DestroyModelMixin):
     queryset = Title.objects.all()
-    lookup_field = 'slug'
-    serializer_class = TitleSerializer
+    serializer_class = CreateTitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = [
                 'category',
@@ -52,6 +49,15 @@ class TitlesViewSet(DefaultViewSet,
                 'name',
                 'year'
                 ]
+
+    def create(self, request, *args, **kwargs):
+        in_data = {**request.data}
+        for key, value in in_data.items():
+            in_data[key] = value[0]
+        in_data['genre'] = request.data['genre'].split(', ')
+        serializer = CreateTitleSerializer(data=in_data)
+        serializer.is_valid(True)
+        return Response(serializer.data)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
