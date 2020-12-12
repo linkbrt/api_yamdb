@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, viewsets, generics
+from rest_framework import filters, mixins, permissions, viewsets, generics, status
 from rest_framework.response import Response
 from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
                                IsStaffOrReadOnly)
@@ -38,25 +38,31 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMi
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
-class TitlesViewSet(viewsets.ViewSet, generics.ListCreateAPIView, mixins.DestroyModelMixin):
+class TitlesViewSet(viewsets.ViewSet, generics.ListCreateAPIView, mixins.DestroyModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin):
     queryset = Title.objects.all()
-    serializer_class = CreateTitleSerializer
+    # serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = [
-                'category',
-                'genre',
-                'name',
-                'year'
-                ]
+    filterset_fields = ['category', 'genre',
+                        'name', 'year', ]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return TitleSerializer
+        return CreateTitleSerializer
 
     def create(self, request, *args, **kwargs):
         in_data = {**request.data}
         for key, value in in_data.items():
             in_data[key] = value[0]
-        in_data['genre'] = request.data['genre'].split(', ')
+        genre = request.data.get('genre')
+        if genre:
+            in_data['genre'] = genre.split(', ')
         serializer = CreateTitleSerializer(data=in_data)
         serializer.is_valid(True)
-        return Response(serializer.data)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 def get_title(self):
@@ -70,8 +76,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def queryset(self):
         title = get_title(self)
-        queryset = title.reviews.all()
-        return queryset
+        return title.reviews.all()
 
     def perform_create(self, serializer):
         title = get_title(self)

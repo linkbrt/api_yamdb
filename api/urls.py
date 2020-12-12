@@ -10,7 +10,7 @@ v1_router.register('categories', CategoriesViewSet, basename='categories')
 v1_router.register('genres', GenresViewSet, basename='genres')
 v1_router.register('titles', TitlesViewSet, basename='titles')
 
-route = r'v1/titles/(?P<title_id>\d+)/reviews'
+route = r'titles/(?P<title_id>\d+)/reviews'
 
 v1_router.register(
     route, ReviewViewSet, basename='review')

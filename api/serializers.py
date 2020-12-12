@@ -26,9 +26,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
 
-    genre = GenreSerializer(source='slug',
-                            many=True,)
-    category = CategorieSerializer(source='slug')
+    genre = GenreSerializer(many=True, )
+    category = CategorieSerializer()
 
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
@@ -36,24 +35,13 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class CreateTitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True)
+    genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True, required=False)
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
 
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
         model = Title
-
-    '''def __init__(self, instance=None, data=None, **kwargs):
-        in_data = {**data}
-        in_data['genre'] = data['genre'].split(', ')
-        in_data['name'] = data['name']
-        in_data['category'] = data['category']
-        print(in_data)
-        super().__init__(instance=instance, data=in_data, **kwargs)'''
-
-    '''def to_representation(self, instance):
-        return TitleSerializer(instance)'''
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -77,7 +65,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         # fields = '__all__'
-        fields = ['id', 'text', 'author', 'score', 'pub_date']
+        fields = ['id', 'text', 'author', 'title' ,'score', 'pub_date']
 
 
 class CommentSerializer(serializers.ModelSerializer):
