@@ -1,10 +1,10 @@
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, viewsets, generics
-from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
-                               IsStaffOrReadOnly)
+from users.permissions import (
+    IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly, IsStaffOrReadOnly)
 
-from .models import Category, Genre, Review, Title
+from .models import Category, Genre, Review, Title, Comment
 from .serializers import (CategorieSerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
 
@@ -16,7 +16,8 @@ class DefaultViewSet(
             mixins.ListModelMixin):
     filter_backends = [filters.SearchFilter, ]
     search_fields = ['=name', ]
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+    permission_classes = [
+        permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
 class CategoriesViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMixin, mixins.DestroyModelMixin):
@@ -58,6 +59,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly, IsStaffOrReadOnly]
+    # lookup_field = 'id'
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -73,10 +75,12 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrReadOnly, IsStaffOrReadOnly]
+    # lookup_field = 'id'
 
     def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        queryset = title.reviews.all()
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        queryset = review.comments.all()
+        # queryset = Comment.objects.filter(review=review)
         return queryset
 
     def perform_create(self, serializer):

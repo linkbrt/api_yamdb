@@ -10,10 +10,10 @@ class Category(models.Model):
     name = models.CharField(max_length=200, unique=True, )
     slug = models.SlugField(default=None, unique=True, max_length=200)
 
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if not self.slug:
+    #         self.slug = slugify(self.name, allow_unicode=True)
+    #     super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-id"]
@@ -26,7 +26,8 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(max_length=200)
-    slug = models.SlugField(default='slug', unique=True, max_length=100, blank=True, null=True)
+    slug = models.SlugField(
+        default='slug', unique=True, max_length=100, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
