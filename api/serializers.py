@@ -1,6 +1,7 @@
 from typing import OrderedDict
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.http.request import QueryDict
 from rest_framework import serializers
 from django.db.models import Avg
 from .models import Category, Comment, Genre, Review, Title
@@ -19,7 +20,6 @@ class CategorieSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
 
-
     class Meta:
         fields = ('name', 'slug', )
         model = Genre
@@ -27,8 +27,9 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleSerializer(serializers.ModelSerializer):
 
-    genre = GenreSerializer(source='genre.slug', many=True)
-    category = CategorieSerializer(source='category.slug')
+    genre = GenreSerializer(source='slug',
+                            many=True,)
+    category = CategorieSerializer(source='slug')
 
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category', )
@@ -36,10 +37,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class CreateTitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(slug_field='slug',
-                                         queryset=Genre.objects.all(),
-                                         many=True,
-                                         validators=[])
+    genre = serializers.SlugRelatedField(slug_field='slug', queryset=Genre.objects.all(), many=True)
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
     rating = serializers.SerializerMethodField(default=None)
