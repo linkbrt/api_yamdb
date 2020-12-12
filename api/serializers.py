@@ -19,9 +19,6 @@ class CategorieSerializer(serializers.ModelSerializer):
 
 class GenreSerializer(serializers.ModelSerializer):
 
-    def validate_genre(self, value):
-        print(value)
-        return value
 
     class Meta:
         fields = ('name', 'slug', )
@@ -39,7 +36,7 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class CreateTitleSerializer(serializers.ModelSerializer):
-    genre = serializers.SlugRelatedField(slug_field='slug__icontains',
+    genre = serializers.SlugRelatedField(slug_field='slug',
                                          queryset=Genre.objects.all(),
                                          many=True,
                                          validators=[])

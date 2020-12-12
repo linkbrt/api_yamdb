@@ -50,24 +50,6 @@ class TitlesViewSet(DefaultViewSet,
                 'name',
                 'year'
                 ]
-    
-
-    #def retrieve(self, request, pk=None):
-        #queryset = Title.objects.all()
-        #composition = get_object_or_404(queryset, pk=pk)
-        #serializer = TitleSerializer(composition)
-        #return Response(serializer.data)
-
-    #def retrieve(self, serializer):
-        #serializer.save(name=self.request['results'].name)
-
-    '''def create(self, request, *args, **kwargs):
-        genres = request.data['genre'].split(', ')
-        serializer = CreateTitleSerializer(data=request.data)
-        print(serializer.data)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)'''
-
 
 def get_title(self):
     title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
