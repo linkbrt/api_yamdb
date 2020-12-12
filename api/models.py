@@ -27,7 +27,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(
-        default='slug', unique=True, max_length=100, blank=True, null=True)
+        default='', unique=True, max_length=100, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:

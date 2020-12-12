@@ -48,19 +48,36 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
-    def validate(self, data):
+    # def validate(self, data):
+    #     # req = data.get('request.method')
+    #     # print(req)
+    #     # if data.get('request.method') != 'PATCH':
+    #     title_id = self.context['view'].kwargs.get('title_id')
+    #     user = self.context['request'].user
+    #     if Review.objects.filter(title=title_id, author=user).exists():
+    #         raise serializers.ValidationError('Error double', code=400)
+    #     return data
 
-        if self.context['request'].method != 'PATCH':
-            title_id = self.context['view'].kwargs.get('title_id')
-            user = self.context['request'].user
-            if Review.objects.filter(title=title_id, author=user).exists():
-                raise serializers.ValidationError('Error double', code=400)
-            return data
+    def validate(self, data):
+        """
+        Защищаеся от дублей и неправильных оценок
+        """
+        print(self)
+        if self.context['request'].method == 'POST':
+            if Review.objects.filter(
+                    author=self.context['request'].user,
+                    title_id=self.context['view'].kwargs.get('title_id'),
+            ).exists():
+                raise serializers.ValidationError(
+                    'Double posting is not allowed'
+                )
+
+        return data
 
     class Meta:
         model = Review
-        # fields = '__all__'
-        fields = ['id', 'text', 'title', 'author', 'score', 'pub_date']
+        fields = '__all__'
+        # fields = ['id', 'text', 'title', 'author', 'score', 'pub_date']
 
 
 class CommentSerializer(serializers.ModelSerializer):

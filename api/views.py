@@ -78,6 +78,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     # lookup_field = 'id'
 
     def get_queryset(self):
+
         review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         queryset = review.comments.all()
         # queryset = Comment.objects.filter(review=review)
