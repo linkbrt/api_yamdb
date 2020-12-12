@@ -32,9 +32,7 @@ class TitleSerializer(serializers.ModelSerializer):
     rating = serializers.SerializerMethodField(default=None)
 
     def get_rating(self, obj):
-        return Review.objects.annotate(
-                rating=Avg('score')
-                ).order_by('-id')
+        return obj.reviews.aggregate(Avg('score'))['score__avg']
 
     class Meta:
         fields = ('id', 'name', 'year', 'description', 'genre', 'category', 'rating', )
@@ -62,6 +60,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='name',
         read_only=True,
     )
+
+    def validate(self, data):
+
+        if self.context['request'].method != 'PATCH':
+            title_id = self.context['view'].kwargs.get('title_id')
+            user = self.context['request'].user
+            if Review.objects.filter(title=title_id, author=user).exists():
+                raise serializers.ValidationError('Error double', code=400)
+        return data
 
     class Meta:
         model = Review

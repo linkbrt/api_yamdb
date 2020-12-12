@@ -10,10 +10,10 @@ class Category(models.Model):
     name = models.CharField(max_length=200, unique=True, )
     slug = models.SlugField(default=None, unique=True, max_length=200)
 
-    # def save(self, *args, **kwargs):
-    #     if not self.slug:
-    #         self.slug = slugify(self.name, allow_unicode=True)
-    #     super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     class Meta:
         ordering = ["-id"]
@@ -27,7 +27,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(max_length=200)
     slug = models.SlugField(
-        default='slug', unique=True, max_length=100, blank=True, null=True)
+        unique=True, max_length=100, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -72,7 +72,8 @@ class Review(models.Model):
     text = models.TextField()
     # author ниже
     score = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)])
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        blank=True, null=True)
     pub_date = models.DateField(auto_now_add=True)
 
     # связь с моделями для удаления
@@ -89,7 +90,7 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
 
     def __str__(self):
-        return self.author, self.text
+        return str(self.score)
 
 
 class Comment(models.Model):
