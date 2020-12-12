@@ -50,6 +50,22 @@ class TitlesViewSet(viewsets.ViewSet,
         if self.request.method == 'GET':
             return TitleSerializer
         return CreateTitleSerializer
+    
+    """ def list(self, request): 
+        queryset = Title.objects.all() 
+        serializer = TitleSerializer(queryset, many=True)
+        return Response(serializer.data) """ 
+
+    """ def list(self, request, *args, **kwargs):
+        in_data = {**request.data}
+        for key, value in in_data.items():
+            in_data[key] = value[0]
+        genre = request.data.get('genre')
+        if genre:
+            in_data['genre'] = genre.split(', ')
+        serializer = TitleSerializer(data=in_data)
+        serializer.is_valid(True)
+        return Response(serializer.data) """
 
     def create(self, request, *args, **kwargs):
         in_data = {**request.data}

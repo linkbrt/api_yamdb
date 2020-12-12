@@ -14,7 +14,6 @@ class CategorieSerializer(serializers.ModelSerializer):
 
 
     class Meta:
-        # fields = '__all__'
         model = Category
         fields = ['name', 'slug']
 
@@ -22,14 +21,13 @@ class CategorieSerializer(serializers.ModelSerializer):
 class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
-        # fields = '__all__'
         model = Genre
         fields = ['name', 'slug']
 
 
 class TitleSerializer(serializers.ModelSerializer):
 
-    genre = GenreSerializer(many=True, )
+    genre = GenreSerializer(many=True,)
     category = CategorieSerializer()
 
     class Meta:
@@ -49,7 +47,7 @@ class CreateTitleSerializer(serializers.ModelSerializer):
         #title_review = Review.objects.filter(title = title_id)
         #if not title_review.exists():
             #return title['resuls'].rating == None
-        
+
 
     class Meta:
         fields = ('id', 'category', 'genre', 'name', 'year', 'rating')
