@@ -40,7 +40,6 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMi
 class TitlesViewSet(DefaultViewSet,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin):
-    # http_method_names = ['get', 'post', 'patch', 'delete']
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
@@ -52,7 +51,13 @@ class TitlesViewSet(DefaultViewSet,
                 ]
     
 
-    #def perform_create(self, serializer):
+    #def retrieve(self, request, pk=None):
+        #queryset = Title.objects.all()
+        #composition = get_object_or_404(queryset, pk=pk)
+        #serializer = TitleSerializer(composition)
+        #return Response(serializer.data)
+
+    #def retrieve(self, serializer):
         #serializer.save(name=self.request['results'].name)
 
 

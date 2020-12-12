@@ -48,7 +48,7 @@ class Title(models.Model):
     year = models.IntegerField(blank=True, null=True)
     rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)],
-        blank=True, null=True,
+        blank=True, null=True, default = None
     )
     description = models.TextField(blank=True)
     genre = models.ManyToManyField(
