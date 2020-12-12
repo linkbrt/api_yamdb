@@ -66,13 +66,11 @@ class Title(models.Model):
 
 class Review(models.Model):
     text = models.TextField()
-    # author ниже
     score = models.IntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)],
         blank=True, null=True)
     pub_date = models.DateField(auto_now_add=True)
 
-    # связь с моделями для удаления
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name="reviews")
@@ -91,10 +89,8 @@ class Review(models.Model):
 
 class Comment(models.Model):
     text = models.TextField()
-    # author ниже
     pub_date = models.DateField('Дата публикации', auto_now_add=True)
 
-    # связь с моделями для удаления
     author = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name="comments")

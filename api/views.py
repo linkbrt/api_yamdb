@@ -1,12 +1,12 @@
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import (filters, generics, mixins, permissions, status,
+from rest_framework import (filters, generics, mixins, permissions,
                             viewsets)
-from rest_framework.response import Response
 from users.permissions import (IsAdminOrReadOnly,
                                IsOwnerOrStaffOrReadOnly, )
 
+from .filters import TitleFilter
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorieSerializer, CommentSerializer,
                           CreateTitleSerializer, GenreSerializer,
@@ -31,7 +31,7 @@ class CategoriesViewSet(
         mixins.DestroyModelMixin):
     queryset = Category.objects.all()
     serializer_class = CategorieSerializer
-    filter_backends = (filters.SearchFilter, )
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend, )
     search_fields = ('name', )
     lookup_field = 'slug'
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
@@ -45,34 +45,16 @@ class GenresViewSet(CategoriesViewSet):
 
 class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('category', 'genre',
-                        'name', 'year', )
+    filter_backends = (DjangoFilterBackend, DjangoFilterBackend, )
+    filterset_class = TitleFilter
+    filterset_fields = ('name', )
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAdminOrReadOnly, )
-
-    def get_queryset(self) -> QuerySet:
-        return super().get_queryset()
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return TitleSerializer
         return CreateTitleSerializer
-
-    def create(self, request, *args, **kwargs) -> Response:
-        in_data = {**request.data}
-        for key, value in in_data.items():
-            in_data[key] = value[0]
-        genre = request.data.get('genre')
-        if genre:
-            in_data['genre'] = genre.split(', ')
-        serializer = CreateTitleSerializer(data=in_data)
-        serializer.is_valid(True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data,
-                        status=status.HTTP_201_CREATED,
-                        headers=headers)
 
 
 def get_title(title_id) -> Title:
