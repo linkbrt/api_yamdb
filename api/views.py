@@ -38,9 +38,7 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMi
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
-class TitlesViewSet(DefaultViewSet,
-                    mixins.RetrieveModelMixin,
-                    mixins.UpdateModelMixin):
+class TitlesViewSet(viewsets.ViewSet, generics.ListCreateAPIView, mixins.DestroyModelMixin):
     queryset = Title.objects.all()
     serializer_class = CreateTitleSerializer
     filter_backends = [DjangoFilterBackend]
@@ -51,12 +49,14 @@ class TitlesViewSet(DefaultViewSet,
                 'year'
                 ]
 
-    '''def create(self, request, *args, **kwargs):
-        genres = request.data['genre'].split(', ')
-        serializer = CreateTitleSerializer(data=request.data)
-        print(serializer.data)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=201, headers=headers)'''
+    def create(self, request, *args, **kwargs):
+        in_data = {**request.data}
+        for key, value in in_data.items():
+            in_data[key] = value[0]
+        in_data['genre'] = request.data['genre'].split(', ')
+        serializer = CreateTitleSerializer(data=in_data)
+        serializer.is_valid(True)
+        return Response(serializer.data)
 
 
 def get_title(self):
