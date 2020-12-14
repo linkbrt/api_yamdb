@@ -9,6 +9,7 @@ v1_router = routers.DefaultRouter()
 v1_router.register('categories', CategoriesViewSet, basename='categories')
 v1_router.register('genres', GenresViewSet, basename='genres')
 v1_router.register('titles', TitlesViewSet, basename='titles')
+
 v1_router.register('users', UserViewSet)
 v1_router.register('auth/email', CreateConfirmCodeMixin)
 v1_router.register('auth/token', RetrieveTokenAPIView)
