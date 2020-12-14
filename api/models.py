@@ -66,16 +66,13 @@ User = get_user_model()
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=200, unique=True, )
-    slug = models.SlugField(default=None, unique=True, max_length=200)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
-        super().save(*args, **kwargs)
+    name = models.CharField(max_length=200, unique=True,
+                            verbose_name='Наименование')
+    slug = models.SlugField(unique=True, max_length=200,
+                            verbose_name='Ссылка')
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ['-id']
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -84,17 +81,14 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200,
+                            verbose_name='Наименование')
     slug = models.SlugField(
-        unique=True, max_length=100, blank=True, null=True)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
-        super().save(*args, **kwargs)
+        unique=True, max_length=100, blank=True,
+        null=True, verbose_name='Ссылка')
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ['-id']
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -103,19 +97,19 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    name = models.CharField(max_length=200)
-    year = models.IntegerField(blank=True, null=True)
-    description = models.TextField(blank=True)
+    name = models.CharField(max_length=200, verbose_name='Наименование')
+    year = models.IntegerField(blank=True, null=True, verbose_name='Год')
+    description = models.TextField(verbose_name='Описание')
     genre = models.ManyToManyField(
-        Genre, related_name="genre",
-        blank=True)
+        Genre, related_name='genre', blank=True, verbose_name='Жанр')
     category = models.ForeignKey(
         Category, on_delete=models.SET_NULL,
         blank=True, null=True,
-        related_name="category")
+        related_name='category',
+        verbose_name='Категория')
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ['-id']
         verbose_name = 'Название'
         verbose_name_plural = 'Названия'
 
