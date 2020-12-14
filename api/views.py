@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from users.permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrStaffOrReadOnly,
                                IsStaffOrReadOnly)
 from rest_framework.response import Response
+from .filters import TitleFilter
 from .models import Category, Genre, Review, Title
 from .serializers import (CategorieSerializer, CommentSerializer, CreateTitleSerializer,
                           GenreSerializer, ReviewSerializer, TitleSerializer)
@@ -39,13 +40,14 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView, mixins.ListModelMi
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
 
 
-class TitlesViewSet(viewsets.ViewSet, generics.ListCreateAPIView, mixins.DestroyModelMixin, mixins.RetrieveModelMixin, mixins.UpdateModelMixin):
+class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     # serializer_class = TitleSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'genre',
                         'name', 'year', ]
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly]
+    filterset_class = TitleFilter    
 
     def get_queryset(self):
         return super().get_queryset().order_by('-id')
@@ -55,18 +57,18 @@ class TitlesViewSet(viewsets.ViewSet, generics.ListCreateAPIView, mixins.Destroy
             return TitleSerializer
         return CreateTitleSerializer
 
-    def create(self, request, *args, **kwargs):
-        in_data = {**request.data}
-        for key, value in in_data.items():
-            in_data[key] = value[0]
-        genre = request.data.get('genre')
-        if genre:
-            in_data['genre'] = genre.split(', ')
-        serializer = CreateTitleSerializer(data=in_data)
-        serializer.is_valid(True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    # def create(self, request, *args, **kwargs):
+    #     in_data = {**request.data}
+    #     for key, value in in_data.items():
+    #         in_data[key] = value[0]
+    #     genre = request.data.get('genre')
+    #     if genre:
+    #         in_data['genre'] = genre.split(', ')
+    #     serializer = CreateTitleSerializer(data=in_data)
+    #     serializer.is_valid(True)
+    #     self.perform_create(serializer)
+    #     headers = self.get_success_headers(serializer.data)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

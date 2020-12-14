@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.core.validators import RegexValidator
 from django.utils.text import slugify
 
 User = get_user_model()
@@ -45,7 +46,16 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=200)
-    year = models.IntegerField(blank=True, null=True)
+    year = models.IntegerField(
+        db_index=True,
+        validators=[
+            RegexValidator(
+                regex=r"\d\d\d\d",
+                message='Year must be 4 digits',
+                code='invalid_year'
+            )
+        ]
+    )
     '''rating = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1), MaxValueValidator(10)],
         blank=True, null=True, default = None
