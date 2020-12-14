@@ -9,6 +9,8 @@ from .models import Category, Genre, Review, Title
 from .serializers import (CategorieSerializer, CommentSerializer, 
                           CreateTitleSerializer, GenreSerializer, 
                           ReviewSerializer, TitleSerializer)
+from .filters import TitleFilter
+from rest_framework.filters import SearchFilter
 
 
 class CategoriesViewSet(viewsets.ViewSet, generics.CreateAPIView, 
@@ -33,15 +35,11 @@ class GenresViewSet(viewsets.ViewSet, generics.CreateAPIView,
                           IsAdminOrReadOnly]
 
 
-class TitlesViewSet(viewsets.ViewSet, 
-                    generics.ListCreateAPIView, 
-                    mixins.DestroyModelMixin, 
-                    mixins.RetrieveModelMixin, 
-                    mixins.UpdateModelMixin):
+class TitlesViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['category', 'genre',
-                        'name', 'year',]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_class = TitleFilter
+    filterset_fields = ['name']
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, 
                           IsAdminOrReadOnly]
 
@@ -52,24 +50,9 @@ class TitlesViewSet(viewsets.ViewSet,
         if self.request.method == 'GET':
             return TitleSerializer
         return CreateTitleSerializer
-    
-    """ def list(self, request): 
-        queryset = Title.objects.all() 
-        serializer = TitleSerializer(queryset, many=True)
-        return Response(serializer.data) """ 
 
-    """ def list(self, request, *args, **kwargs):
-        in_data = {**request.data}
-        for key, value in in_data.items():
-            in_data[key] = value[0]
-        genre = request.data.get('genre')
-        if genre:
-            in_data['genre'] = genre.split(', ')
-        serializer = TitleSerializer(data=in_data)
-        serializer.is_valid(True)
-        return Response(serializer.data) """
 
-    def create(self, request, *args, **kwargs):
+    """ def create(self, request, *args, **kwargs):
         in_data = {**request.data}
         for key, value in in_data.items():
             in_data[key] = value[0]
@@ -82,7 +65,7 @@ class TitlesViewSet(viewsets.ViewSet,
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, 
                         status=status.HTTP_201_CREATED,
-                        headers=headers)
+                        headers=headers) """
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
