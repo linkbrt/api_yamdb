@@ -27,11 +27,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'users',
     'api',
     'django_filters',
 ]
-AUTH_USER_MODEL = 'users.Profile'
+AUTH_USER_MODEL = 'api.Profile'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
