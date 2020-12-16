@@ -90,13 +90,13 @@ class Category(models.Model):
             self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
 
+    def __str__(self) -> str:
+        return self.name
+
     class Meta:
         ordering = ['-id']
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-
-    def __str__(self):
-        return self.name
 
 
 class Genre(models.Model):
@@ -106,13 +106,13 @@ class Genre(models.Model):
         unique=True, max_length=100, blank=True,
         null=True, verbose_name='Ссылка')
 
+    def __str__(self) -> str:
+        return self.name
+
     class Meta:
         ordering = ['-id']
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self):
-        return self.name
 
 
 class Title(models.Model):
@@ -136,13 +136,13 @@ class Title(models.Model):
         related_name='category',
         verbose_name='Категория')
 
+    def __str__(self) -> str:
+        return self.name
+
     class Meta:
         ordering = ['-id']
         verbose_name = 'Название'
         verbose_name_plural = 'Названия'
-
-    def __str__(self):
-        return self.name
 
 
 class Review(models.Model):
@@ -161,15 +161,15 @@ class Review(models.Model):
         Title, on_delete=models.CASCADE,
         related_name="reviews")
 
+    def __str__(self) -> str:
+        return f'{self.author} написал {self.text} на {self.title}.'\
+               f'{self.author} оценил {self.title} на {self.score}.'\
+               f'{self.pub_date}.'
+
     class Meta:
         ordering = ["-pub_date"]
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
-
-    def __str__(self):
-        return f'{self.author} написал {self.text} на {self.title}.'
-        f'{self.author} оценил {self.title} на {self.score}.'
-        f'{self.pub_date}.'
 
 
 class Comment(models.Model):
@@ -187,11 +187,11 @@ class Comment(models.Model):
         Review, on_delete=models.CASCADE,
         related_name="comments")
 
+    def __str__(self) -> str:
+        return f'{self.author} написал {self.text} на {self.review}.'\
+               f'{self.pub_date}.'
+
     class Meta:
         ordering = ["-pub_date"]
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментариев'
-
-    def __str__(self):
-        return f'{self.author} написал {self.text} на {self.review}.'\
-               f'{self.pub_date}.'
