@@ -18,34 +18,32 @@ from .serializers import (CategorieSerializer, CommentSerializer,
                           ProfileSerializer, ReviewSerializer, TitleSerializer)
 
 
-class DefaultViewSet(
-            viewsets.ModelViewSet,
-            mixins.CreateModelMixin,
-            mixins.DestroyModelMixin,
-            mixins.ListModelMixin):
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('name', )
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly, IsAdminOrReadOnly)
-
-
-class CategoriesViewSet(
+class BaseListCreateDestroyViewSet(
         viewsets.ViewSet,
         generics.CreateAPIView,
         mixins.ListModelMixin,
         mixins.DestroyModelMixin):
+    pass
+
+
+class CategoriesViewSet(BaseListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorieSerializer
-    filter_backends = (filters.SearchFilter, DjangoFilterBackend, )
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
     search_fields = ('name', )
     lookup_field = 'slug'
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAdminOrReadOnly)
 
 
-class GenresViewSet(CategoriesViewSet):
+class GenresViewSet(BaseListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+    filter_backends = (filters.SearchFilter, DjangoFilterBackend,)
+    search_fields = ('name', )
+    lookup_field = 'slug'
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,
+                          IsAdminOrReadOnly)
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
