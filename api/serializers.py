@@ -1,12 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
-from .models import Category, Comment, Confirm, Genre, Profile, Review, Title
-from .validators import IsExistsValidator
-
-User = get_user_model()
+from .models import Category, Comment, Genre, Profile, Review, Title
 
 
 class CategorieSerializer(serializers.ModelSerializer):
@@ -105,36 +101,3 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ('first_name', 'last_name', 'username',
                   'email', 'bio', 'role')
-
-
-class MyOwnProfileSerializer(ProfileSerializer):
-
-    def validate_role(self, value):
-        user = self.context['request'].user
-        if user.role == 'admin':
-            return value
-        if user.role == 'moderator':
-            return 'moderator'
-        return 'user'
-
-
-class CreateConfirmCodeSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(default='')
-
-    class Meta:
-        model = Confirm
-        fields = ('email', 'confirmation_code', )
-
-
-class RetrieveTokenSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
-    confirmation_code = serializers.CharField()
-
-    class Meta:
-        model = Confirm
-        fields = '__all__'
-        validators = [
-            IsExistsValidator(
-                fields=('email', 'confirmation_code', )
-            )
-        ]

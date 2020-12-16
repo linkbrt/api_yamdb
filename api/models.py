@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -6,14 +5,8 @@ from django.db import models
 from django.utils.text import slugify
 
 
-GROUPS = (
-    ('user', 'user'),
-    ('moderator', 'moderator'),
-    ('admin', 'admin'),
-)
-
-
 class ProfileManager(BaseUserManager):
+    '''Detach from default Django username field'''
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -27,14 +20,14 @@ class ProfileManager(BaseUserManager):
         return user
 
     def create_user(self, email, password=None, **extra_fields):
-        """Create and save a regular User with the given email and password."""
+        """Regular user parameters"""
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         extra_fields.setdefault('role', 'user')
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        """Create and save a SuperUser with the given email and password."""
+        """SuperUser parameters"""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('role', 'admin')
@@ -47,29 +40,49 @@ class ProfileManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
+class Role(models.TextChoices):
+    user = 'user', 'User'
+    moderator = 'moderator', 'Moderator'
+    admin = 'admin', 'Administrator'
+
+
 class Profile(AbstractUser):
-    username = models.CharField(max_length=30, blank=True, unique=True)
+    username = models.CharField(max_length=30,
+                                blank=True, unique=True)
     password = models.CharField(max_length=128)
     email = models.EmailField(unique=True)
     bio = models.TextField(max_length=200, blank=True)
-    role = models.CharField(max_length=20,
-                            default='user',
-                            choices=GROUPS)
+    role = models.CharField(
+        max_length=20,
+        choices=Role.choices,
+        default=Role.user,
+    )
+    last_login = models.DateTimeField(
+        blank=True, null=True,
+        auto_created=True,)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     objects = ProfileManager()
 
+    def __str__(self) -> str:
+        return self.email
 
-User = get_user_model()
+    @property
+    def is_moder(self) -> bool:
+        return self.role == Role.moderator
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role == Role.admin
 
 
 class Category(models.Model):
     name = models.CharField(max_length=200, unique=True, )
     slug = models.SlugField(default=None, unique=True, max_length=200)
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         if not self.slug:
             self.slug = slugify(self.name, allow_unicode=True)
         super().save(*args, **kwargs)
@@ -131,7 +144,7 @@ class Review(models.Model):
     pub_date = models.DateField(auto_now_add=True)
 
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        Profile, on_delete=models.CASCADE,
         related_name="reviews")
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
@@ -151,7 +164,7 @@ class Comment(models.Model):
     pub_date = models.DateField('Дата публикации', auto_now_add=True)
 
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        Profile, on_delete=models.CASCADE,
         related_name="comments")
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE,
@@ -167,8 +180,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return self.text
-
-
-class Confirm(models.Model):
-    email = models.EmailField(unique=True)
-    confirmation_code = models.CharField(max_length=10)

@@ -1,25 +1,21 @@
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
-from django.utils.crypto import get_random_string
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (decorators, filters, generics, mixins, permissions,
                             viewsets)
-from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .permissions import IsAdminOrReadOnly, IsOwnerOrStaffOrReadOnly
 
 from .filters import TitleFilter
-from .models import Category, Confirm, Genre, Profile, Review, Title
+from .models import Category, Genre, Profile, Review, Title
 from .permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
-                          IsStaffOrReadOnly)
+                          IsOwnerOrStaffOrReadOnly)
 from .serializers import (CategorieSerializer, CommentSerializer,
-                          CreateConfirmCodeSerializer, CreateTitleSerializer,
-                          GenreSerializer, MyOwnProfileSerializer,
-                          ProfileSerializer, RetrieveTokenSerializer,
-                          ReviewSerializer, TitleSerializer)
+                          CreateTitleSerializer, GenreSerializer,
+                          ProfileSerializer, ReviewSerializer, TitleSerializer)
 
 
 class DefaultViewSet(
@@ -107,54 +103,49 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, )
     filterset_fields = ('username', )
 
+    def get_queryset(self) -> QuerySet:
+        return super().get_queryset().order_by('-id')
 
-@decorators.api_view(('GET', 'PATCH', ), )
-@decorators.permission_classes([IsAuthenticated, IsOwnerOrReadOnly])
-def api_get_profile(request):
-    if request.method == 'GET':
-        serializer = MyOwnProfileSerializer(request.user)
-        return Response(serializer.data, status=200)
-    elif request.method == 'PATCH':
-        serializer = MyOwnProfileSerializer(instance=request.user,
-                                       data=request.data,
-                                       context=request,
-                                       partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(data=serializer.data, status=200)
-        return Response(serializer.errors, status=400)
-
-
-class CreateConfirmCodeMixin(viewsets.ViewSet, CreateAPIView):
-    queryset = Confirm.objects.all()
-    serializer_class = CreateConfirmCodeSerializer
-    permission_classes = (AllowAny, )
-
-    def perform_create(self, serializer):
-        code = get_random_string(10)
-        serializer.save(confirmation_code=code)
-        send_mail(
-            'Confirmation code',
-            code,
-            'yamdb@api.com',
-            [serializer.data['email'], ])
-
-
-class RetrieveTokenAPIView(viewsets.ViewSet, CreateAPIView):
-    queryset = Confirm.objects.all()
-    serializer_class = RetrieveTokenSerializer
-    permission_classes = (AllowAny, )
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+    @decorators.action(
+        methods=('GET', 'PATCH', ), detail=False,
+        permission_classes=(IsAuthenticated, IsOwnerOrReadOnly, ))
+    def me(self, request, *args, **kwargs) -> Response:
+        serializer = None
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data, status=200)
+        else:
+            serializer = self.get_serializer(
+                instance=request.user, data=request.data,
+                partial=True)
         serializer.is_valid(raise_exception=True)
-        token = self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response({'token': str(token)}, status=201, headers=headers)
+        self.perform_create(serializer)
+        return Response(data=serializer.data, status=200)
 
-    def perform_create(self, serializer):
-        user = Profile.objects.get_or_create(
-            email=serializer.data['email']
-        )
-        get_object_or_404(Confirm, **serializer.data).delete()
-        return RefreshToken.for_user(user[0]).access_token
+
+@decorators.permission_classes([AllowAny])
+@decorators.api_view(('POST', ))
+def register_user(request):
+    email = request.data.get('email')
+    if not email:
+        return Response(status=400)
+    user = Profile.objects.get_or_create(email=email)
+    code = default_token_generator.make_token(user[0])
+    send_mail('Confirmation code', code,
+              None, [email, ], )
+    return Response(status=200)
+
+
+@decorators.permission_classes((AllowAny, ))
+@decorators.api_view(('POST', ))
+def retrieve_token(request):
+    email = request.data.get('email')
+    if not email:
+        return Response(status=400)
+    user = get_object_or_404(Profile, email=email)
+    code = request.data.get('confirmation_code')
+    if default_token_generator.check_token(user, code):
+        return Response(
+            'token: ' + str(RefreshToken.for_user(user).access_token))
+    else:
+        return Response(status=400)
