@@ -8,6 +8,7 @@ from .models import Category, Comment, Genre, Profile, Review, Title
 class CategorieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
+        lookup_field = 'slug'
         fields = ['name', 'slug']
 
 
@@ -61,7 +62,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        if self.context['request'].method != 'PATCH':
+        if self.context['request'].method == 'POST':
             title_id = self.context['view'].kwargs.get('title_id')
             user = self.context['request'].user
             if Review.objects.filter(title=title_id, author=user).exists():

@@ -83,14 +83,18 @@ class CommentViewSet(viewsets.ModelViewSet):
                           IsOwnerOrStaffOrReadOnly, )
 
     def get_queryset(self) -> QuerySet:
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        review = get_object_or_404(
+            Review, pk=self.kwargs.get('review_id', 'title_id'))
         return review.comments.all()
 
     def perform_create(self, serializer) -> None:
         title = get_title(self.kwargs['title_id'])
-        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        review = get_object_or_404(
+            Review, pk=self.kwargs.get('review_id', 'title_id'))
         serializer.save(
             author=self.request.user, title=title, review=review)
+        # проверку добавили, но мы не можем убрать title,
+        # это необходимое поле в модели
 
 
 class UserViewSet(viewsets.ModelViewSet):

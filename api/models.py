@@ -2,6 +2,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.core.validators import RegexValidator
 from django.utils.text import slugify
 
 
@@ -116,7 +117,16 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField(max_length=200, verbose_name='Наименование')
-    year = models.IntegerField(blank=True, null=True, verbose_name='Год')
+    year = models.IntegerField(
+        db_index=True,
+        validators=[
+            RegexValidator(
+                regex=r"\d\d\d\d",
+                message='Year must be 4 digits',
+                code='invalid_year'
+            )
+        ]
+    )
     description = models.TextField(verbose_name='Описание')
     genre = models.ManyToManyField(
         Genre, related_name='genre', blank=True, verbose_name='Жанр')
@@ -138,9 +148,11 @@ class Title(models.Model):
 class Review(models.Model):
     text = models.TextField()
     score = models.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        validators=[
+            MinValueValidator(1, message='Введите число не меньше 1'),
+            MaxValueValidator(10, message='Введите число не больше 10')],
         blank=True, null=True)
-    pub_date = models.DateField(auto_now_add=True)
+    pub_date = models.DateField(auto_now_add=True, db_index=True)
 
     author = models.ForeignKey(
         Profile, on_delete=models.CASCADE,
@@ -155,12 +167,15 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
 
     def __str__(self):
-        return str(self.score)
+        return f'{self.author} написал {self.text} на {self.title}.'
+        f'{self.author} оценил {self.title} на {self.score}.'
+        f'{self.pub_date}.'
 
 
 class Comment(models.Model):
     text = models.TextField()
-    pub_date = models.DateField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateField(
+        'Дата публикации', auto_now_add=True, db_index=True)
 
     author = models.ForeignKey(
         Profile, on_delete=models.CASCADE,
@@ -178,4 +193,5 @@ class Comment(models.Model):
         verbose_name_plural = 'Комментариев'
 
     def __str__(self):
-        return self.text
+        return f'{self.author} написал {self.text} на {self.review}.'\
+               f'{self.pub_date}.'
