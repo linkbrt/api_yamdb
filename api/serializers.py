@@ -104,7 +104,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 class CreateProfileSerializer(serializers.ModelSerializer):
     """
-    Default email field raise exception if user with this email already exists
+    Default email field raise exception
+    if user with this email already exists
     """
     email = serializers.CharField(validators=[EmailValidator])
 
@@ -114,9 +115,7 @@ class CreateProfileSerializer(serializers.ModelSerializer):
 
 
 class RetrieveTokenSerializer(serializers.ModelSerializer):
-    """
-    Just like in CreateProfileSerializer
-    """
+    """Just like in CreateProfileSerializer"""
     email = serializers.CharField(validators=[EmailValidator])
     confirmation_code = serializers.CharField()
 
