@@ -22,6 +22,11 @@ v1_router.register(
 
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
+]
+
+auth_urlpatterns = [
     path('v1/auth/email/', register_user),
     path('v1/auth/token/', retrieve_token),
 ]
+
+urlpatterns += auth_urlpatterns # noqa

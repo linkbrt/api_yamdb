@@ -4,7 +4,7 @@ from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (decorators, filters, generics, mixins, permissions,
-                            viewsets)
+                            status, viewsets)
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -14,8 +14,10 @@ from .models import Category, Genre, Profile, Review, Title
 from .permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
                           IsOwnerOrStaffOrReadOnly)
 from .serializers import (CategorieSerializer, CommentSerializer,
-                          CreateTitleSerializer, GenreSerializer,
-                          ProfileSerializer, ReviewSerializer, TitleSerializer)
+                          CreateProfileSerializer, CreateTitleSerializer,
+                          GenreSerializer, ProfileSerializer,
+                          RetrieveTokenSerializer, ReviewSerializer,
+                          TitleSerializer)
 
 
 class BaseListCreateDestroyViewSet(
@@ -70,7 +72,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                           IsOwnerOrStaffOrReadOnly, )
 
     def get_queryset(self) -> QuerySet:
-        return get_title(self.kwargs['title_id']).reviews.all()
+        return get_title(self.kwargs['title_id']).reviews.all() # noqa
 
     def perform_create(self, serializer) -> None:
         title = get_title(self.kwargs['title_id'])
@@ -85,7 +87,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet:
         review = get_object_or_404(
             Review, pk=self.kwargs.get('review_id', 'title_id'))
-        return review.comments.all()
+        return review.comments.all() # noqa
 
     def perform_create(self, serializer) -> None:
         title = get_title(self.kwargs['title_id'])
@@ -93,8 +95,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             Review, pk=self.kwargs.get('review_id', 'title_id'))
         serializer.save(
             author=self.request.user, title=title, review=review)
-        # проверку добавили, но мы не можем убрать title,
-        # это необходимое поле в модели
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -112,42 +112,42 @@ class UserViewSet(viewsets.ModelViewSet):
         methods=('GET', 'PATCH', ), detail=False,
         permission_classes=(IsAuthenticated, IsOwnerOrReadOnly, ))
     def me(self, request, *args, **kwargs) -> Response:
-        serializer = None
         if request.method == 'GET':
             serializer = self.get_serializer(request.user)
-            return Response(serializer.data, status=200)
-        else:
-            serializer = self.get_serializer(
-                instance=request.user, data=request.data,
-                partial=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(
+            instance=request.user, data=request.data,
+            partial=True)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(data=serializer.data, status=200)
+        serializer.save()
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
 @decorators.permission_classes([AllowAny])
 @decorators.api_view(('POST', ))
 def register_user(request):
-    email = request.data.get('email')
-    if not email:
-        return Response(status=400)
+    serializer = CreateProfileSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data['email']
     user = Profile.objects.get_or_create(email=email)
     code = default_token_generator.make_token(user[0])
     send_mail('Confirmation code', code,
-              None, [email, ], )
-    return Response(status=200)
+              None, [email], )
+    return Response(data='Mail with confirmation code created.',
+                    status=status.HTTP_200_OK)
 
 
 @decorators.permission_classes((AllowAny, ))
 @decorators.api_view(('POST', ))
 def retrieve_token(request):
-    email = request.data.get('email')
-    if not email:
-        return Response(status=400)
-    user = get_object_or_404(Profile, email=email)
-    code = request.data.get('confirmation_code')
-    if default_token_generator.check_token(user, code):
-        return Response(
-            'token: ' + str(RefreshToken.for_user(user).access_token))
+    serializer = RetrieveTokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    data = serializer.validated_data
+    user = get_object_or_404(Profile, email=data['email'])
+    if default_token_generator.check_token(user, data['confirmation_code']):
+        token = 'token: ' + str(RefreshToken.for_user(user).access_token)
+        return Response(data=token,
+                        status=status.HTTP_200_OK)
     else:
-        return Response(status=400)
+        return Response(data={'confirmation_code': ['not valid', ]},
+                        status=status.HTTP_400_BAD_REQUEST)

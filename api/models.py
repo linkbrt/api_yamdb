@@ -42,9 +42,9 @@ class ProfileManager(BaseUserManager):
 
 
 class Role(models.TextChoices):
-    user = 'user', 'User'
-    moderator = 'moderator', 'Moderator'
-    admin = 'admin', 'Administrator'
+    USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
 
 
 class Profile(AbstractUser):
@@ -56,11 +56,8 @@ class Profile(AbstractUser):
     role = models.CharField(
         max_length=20,
         choices=Role.choices,
-        default=Role.user,
+        default=Role.USER,
     )
-    last_login = models.DateTimeField(
-        blank=True, null=True,
-        auto_created=True,)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
@@ -72,11 +69,11 @@ class Profile(AbstractUser):
 
     @property
     def is_moder(self) -> bool:
-        return self.role == Role.moderator
+        return self.role == Role.MODERATOR
 
     @property
     def is_admin(self) -> bool:
-        return self.role == Role.admin
+        return self.role == Role.ADMIN or self.is_staff or self.is_superuser
 
 
 class Category(models.Model):
