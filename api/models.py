@@ -1,44 +1,8 @@
-from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import RegexValidator
 from django.utils.text import slugify
-
-
-class ProfileManager(BaseUserManager):
-    '''Detach from default Django username field'''
-    use_in_migrations = True
-
-    def _create_user(self, email, password, **extra_fields):
-        """Create and save a User with the given email and password."""
-        if not email:
-            raise ValueError('The given email must be set')
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-    def create_user(self, email, password=None, **extra_fields):
-        """Regular user parameters"""
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
-        extra_fields.setdefault('role', 'user')
-        return self._create_user(email, password, **extra_fields)
-
-    def create_superuser(self, email, password, **extra_fields):
-        """SuperUser parameters"""
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('role', 'admin')
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('Superuser must have is_staff=True.')
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('Superuser must have is_superuser=True.')
-
-        return self._create_user(email, password, **extra_fields)
+import datetime
 
 
 class Role(models.TextChoices):
@@ -48,9 +12,6 @@ class Role(models.TextChoices):
 
 
 class Profile(AbstractUser):
-    username = models.CharField(max_length=30,
-                                blank=True, unique=True)
-    password = models.CharField(max_length=128)
     email = models.EmailField(unique=True)
     bio = models.TextField(max_length=200, blank=True)
     role = models.CharField(
@@ -58,11 +19,6 @@ class Profile(AbstractUser):
         choices=Role.choices,
         default=Role.USER,
     )
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = []
-
-    objects = ProfileManager()
 
     def __str__(self) -> str:
         return self.email

@@ -102,8 +102,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = ProfileSerializer
     lookup_field = 'username'
     permission_classes = (IsAuthenticated, IsAdminOrDeny, )
-    filter_backends = (DjangoFilterBackend, )
-    filterset_fields = ('username', )
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['username']
 
     def get_queryset(self) -> QuerySet:
         return super().get_queryset().order_by('-id')
@@ -124,7 +124,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 @decorators.permission_classes([AllowAny])
-@decorators.api_view(('POST', ))
+@decorators.api_view(['POST'])
 def register_user(request):
     serializer = CreateProfileSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
@@ -137,13 +137,16 @@ def register_user(request):
                     status=status.HTTP_200_OK)
 
 
-@decorators.permission_classes((AllowAny, ))
-@decorators.api_view(('POST', ))
+@decorators.permission_classes([AllowAny])
+@decorators.api_view(['POST'])
 def retrieve_token(request):
     serializer = RetrieveTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     data = serializer.validated_data
-    user = get_object_or_404(Profile, email=data['email'])
+    username = data['email'].split('@')[0]
+    user = Profile.objects.get(email=data['email'])
+    if not user:
+        user = Profile.objects.create(username=username, email=data['email'])
     if default_token_generator.check_token(user, data['confirmation_code']):
         token = 'token: ' + str(RefreshToken.for_user(user).access_token)
         return Response(data=token,
