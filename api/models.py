@@ -112,18 +112,21 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
 
+def current_year():
+    return datetime.date.today().year
+
+
+def max_value_current_year(value):
+    return MaxValueValidator(current_year())(value)
+
+
 class Title(models.Model):
     name = models.CharField(max_length=200, verbose_name='Наименование')
     year = models.IntegerField(
-        db_index=True,
-        validators=[
-            RegexValidator(
-                regex=r"\d\d\d\d",
-                message='Year must be 4 digits',
-                code='invalid_year'
-            )
-        ]
-    )
+                default=current_year(),
+                validators=[MinValueValidator(1900), max_value_current_year],
+                blank=True, null=True,
+                verbose_name='Год')
     description = models.TextField(verbose_name='Описание')
     genre = models.ManyToManyField(
         Genre, related_name='genre', blank=True, verbose_name='Жанр')
