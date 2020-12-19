@@ -11,4 +11,4 @@ class TitleFilter(filters.FilterSet):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = ['genre', 'category', 'year', 'name']

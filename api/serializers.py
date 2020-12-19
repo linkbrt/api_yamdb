@@ -1,17 +1,15 @@
-from django.contrib.auth import get_user_model
+from django.core.validators import EmailValidator
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 
-from .models import Category, Comment, Confirm, Genre, Profile, Review, Title
-from .validators import IsExistsValidator
-
-User = get_user_model()
+from .models import Category, Comment, Genre, Profile, Review, Title
 
 
 class CategorieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
+        lookup_field = 'slug'
         fields = ['name', 'slug']
 
 
@@ -65,11 +63,14 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     def validate(self, data):
-        if self.context['request'].method != 'PATCH':
-            title_id = self.context['view'].kwargs.get('title_id')
-            user = self.context['request'].user
-            if Review.objects.filter(title=title_id, author=user).exists():
-                raise serializers.ValidationError('Error double', code=400)
+        if self.context['request'].method != 'POST':
+            return data
+
+        title_id = self.context['view'].kwargs.get('title_id')
+        user = self.context['request'].user
+        if Review.objects.filter(title=title_id, author=user).exists():
+            raise serializers.ValidationError('Error double', code=400)
+
         return data
 
     class Meta:
@@ -97,45 +98,30 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-STAFF_GROUPS = ('moderator', 'admin')
-
-
 class ProfileSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Profile
         fields = ('first_name', 'last_name', 'username',
                   'email', 'bio', 'role')
 
 
-class MyOwnProfileSerializer(ProfileSerializer):
-
-    def validate_role(self, value):
-        user = self.context['request'].user
-        if user.role == 'admin':
-            return value
-        if user.role == 'moderator':
-            return 'moderator'
-        return 'user'
-
-
-class CreateConfirmCodeSerializer(serializers.ModelSerializer):
-    confirmation_code = serializers.HiddenField(default='')
+class CreateProfileSerializer(serializers.ModelSerializer):
+    """
+    Default email field raise exception
+    if user with this email already exists
+    """
+    email = serializers.CharField(validators=[EmailValidator])
 
     class Meta:
-        model = Confirm
-        fields = ('email', 'confirmation_code', )
+        model = Profile
+        fields = ('email', )
 
 
 class RetrieveTokenSerializer(serializers.ModelSerializer):
-    email = serializers.EmailField()
+    """Just like in CreateProfileSerializer"""
+    email = serializers.CharField(validators=[EmailValidator])
     confirmation_code = serializers.CharField()
 
     class Meta:
-        model = Confirm
-        fields = '__all__'
-        validators = [
-            IsExistsValidator(
-                fields=('email', 'confirmation_code', )
-            )
-        ]
+        model = Profile
+        fields = ('email', 'confirmation_code', )
