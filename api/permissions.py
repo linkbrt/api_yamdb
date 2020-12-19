@@ -1,39 +1,35 @@
 from rest_framework import permissions
 
 
-STAFF_GROUPS = ('moderator', 'admin')
-
-
 class IsOwnerOrReadOnly(permissions.BasePermission):
-
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, view, obj) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.author == request.user
 
 
-class IsStaffOrReadOnly(permissions.BasePermission):
-
-    def has_object_permission(self, request, view, obj):
+class IsOwnerOrStaffOrReadOnly(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user in STAFF_GROUPS
+        user = request.user
+        return obj.author == user or user.is_admin or user.is_moder
 
 
 class IsModeratorOrReadOnly(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
+    def has_object_permission(self, request, view, obj) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user.role == 'moderator'
+        return request.user.is_moder
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
-    def has_permission(self, request, view):
+    def has_permission(self, request, view) -> bool:
         if request.method in permissions.SAFE_METHODS:
             return True
-        return request.user.role == 'admin'
+        return request.user.is_admin
 
 
 class IsAdminOrDeny(permissions.BasePermission):
-    def has_permission(self, request, view):
-        return request.user.role == 'admin'
+    def has_permission(self, request, view) -> bool:
+        return request.user.is_admin
