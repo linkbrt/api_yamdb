@@ -114,9 +114,9 @@ def api_get_profile(request):
         return Response(serializer.data, status=200)
     elif request.method == 'PATCH':
         serializer = MyOwnProfileSerializer(instance=request.user,
-                                       data=request.data,
-                                       context=request,
-                                       partial=True)
+                                            data=request.data,
+                                            context=request,
+                                            partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(data=serializer.data, status=200)

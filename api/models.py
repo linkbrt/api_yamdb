@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
+import datetime
 
 
 GROUPS = (
@@ -96,9 +97,21 @@ class Genre(models.Model):
         return self.name
 
 
+def current_year():
+    return datetime.date.today().year
+
+
+def max_value_current_year(value):
+    return MaxValueValidator(current_year())(value)
+
+
 class Title(models.Model):
     name = models.CharField(max_length=200, verbose_name='Наименование')
-    year = models.IntegerField(blank=True, null=True, verbose_name='Год')
+    year = models.IntegerField(
+                default=current_year(),
+                validators=[MinValueValidator(1900), max_value_current_year],
+                blank=True, null=True,
+                verbose_name='Год')
     description = models.TextField(verbose_name='Описание')
     genre = models.ManyToManyField(
         Genre, related_name='genre', blank=True, verbose_name='Жанр')
