@@ -22,12 +22,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True, read_only=True, )
     category = CategorieSerializer()
-    rating = serializers.SerializerMethodField(
-        default=None,
-    )
-
-    def get_rating(self, obj):
-        return obj.reviews.aggregate(Avg('score'))['score__avg']
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
         fields = ('id', 'name', 'year', 'rating', 'description',
@@ -66,7 +61,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         if self.context['request'].method != 'POST':
             return data
 
-        title_id = self.context['view'].kwargs.get('title_id')
+        title_id = self.context['view'].kwargs['title_id']
         user = self.context['request'].user
         if Review.objects.filter(title=title_id, author=user).exists():
             raise serializers.ValidationError('Error double', code=400)
