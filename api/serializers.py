@@ -114,6 +114,10 @@ class BaseProfileSerializer(serializers.ModelSerializer):
 
 
 class CreateProfileSerializer(serializers.ModelSerializer):
+    """
+    Default email field raise exception
+    if user with this email already exists
+    """
     class Meta:
         model = Profile
         fields = ('email', 'username')
