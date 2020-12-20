@@ -66,20 +66,18 @@ class TitlesViewSet(viewsets.ModelViewSet):
         return CreateTitleSerializer
 
 
-def get_title(title_id) -> Title:
-    return get_object_or_404(Title, pk=title_id)
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrStaffOrReadOnly, )
 
-    def get_queryset(self) -> QuerySet:
-        return get_title(self.kwargs['title_id']).reviews.all()
+    def get_queryset(self):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        queryset = title.reviews.all()
+        return queryset
 
-    def perform_create(self, serializer) -> None:
-        title = get_title(self.kwargs['title_id'])
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
 
@@ -88,15 +86,14 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrStaffOrReadOnly, )
 
-    def get_queryset(self) -> QuerySet:
-        review = get_object_or_404(
-            Review, pk=self.kwargs.get('review_id', 'title_id'))
-        return review.comments.all()
+    def get_queryset(self):
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        queryset = review.comments.all()
+        return queryset
 
-    def perform_create(self, serializer) -> None:
-        title = get_title(self.kwargs['title_id'])
-        review = get_object_or_404(
-            Review, pk=self.kwargs.get('review_id', 'title_id'))
+    def perform_create(self, serializer):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(
             author=self.request.user, title=title, review=review)
         # проверку добавили, но мы не можем убрать title,
