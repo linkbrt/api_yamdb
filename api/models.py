@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import slugify
-import datetime
+from .validators import year_validator
 
 
 class Role(models.TextChoices):
@@ -75,19 +75,10 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
 
-def current_year():
-    return datetime.date.today().year
-
-
-def max_value_current_year(value):
-    return MaxValueValidator(current_year())(value)
-
-
 class Title(models.Model):
     name = models.CharField(max_length=200, verbose_name='Наименование')
     year = models.IntegerField(
-                default=current_year(),
-                validators=[MinValueValidator(1900), max_value_current_year],
+                validators=[year_validator],
                 blank=True, null=True,
                 verbose_name='Год')
     description = models.TextField(verbose_name='Описание')

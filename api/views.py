@@ -3,6 +3,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (decorators, filters, generics, mixins, permissions,
                             status, viewsets)
@@ -57,6 +58,10 @@ class TitlesViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsAdminOrReadOnly, )
 
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')
+    ).order_by('-id')
+
     def get_serializer_class(self):
         if self.request.method == 'GET':
             return TitleSerializer
@@ -73,7 +78,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
                           IsOwnerOrStaffOrReadOnly, )
 
     def get_queryset(self) -> QuerySet:
-        return get_title(self.kwargs['title_id']).reviews.all() # noqa
+        return get_object_or_404(
+                    Title,
+                    pk=self.kwargs['title_id']
+                ).reviews.all()
 
     def perform_create(self, serializer) -> None:
         title = get_title(self.kwargs['title_id'])
