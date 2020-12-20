@@ -31,6 +31,13 @@ class Profile(AbstractUser):
     def is_admin(self) -> bool:
         return self.role == Role.ADMIN or self.is_staff or self.is_superuser
 
+    @property
+    def is_staff_user(self) -> bool:
+        return self.is_admin or self.is_moder
+
+    class Meta:
+        ordering = ('id', )
+
 
 class Category(models.Model):
     name = models.CharField(max_length=200, unique=True,

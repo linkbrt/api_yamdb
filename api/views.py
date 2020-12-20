@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models.query import QuerySet
@@ -13,9 +14,9 @@ from .filters import TitleFilter
 from .models import Category, Genre, Profile, Review, Title
 from .permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
                           IsOwnerOrStaffOrReadOnly)
-from .serializers import (CategorieSerializer, CommentSerializer,
-                          CreateProfileSerializer, CreateTitleSerializer,
-                          GenreSerializer, ProfileSerializer,
+from .serializers import (BaseProfileSerializer, CategorieSerializer,
+                          CommentSerializer, CreateProfileSerializer, CreateTitleSerializer,
+                          FullProfileSerializer, GenreSerializer,
                           RetrieveTokenSerializer, ReviewSerializer,
                           TitleSerializer)
 
@@ -99,19 +100,23 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+    serializer_class = BaseProfileSerializer
     lookup_field = 'username'
     permission_classes = (IsAuthenticated, IsAdminOrDeny, )
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['username']
 
-    def get_queryset(self) -> QuerySet:
-        return super().get_queryset().order_by('-id')
+    def get_serializer_class(self):
+        if self.request.user.is_staff_user:
+            return FullProfileSerializer
+        return super().get_serializer_class()
 
     @decorators.action(
-        methods=('GET', 'PATCH', ), detail=False,
-        permission_classes=(IsAuthenticated, IsOwnerOrReadOnly, ))
-    def me(self, request, *args, **kwargs) -> Response:
+        methods=('GET', 'PATCH'),
+        detail=False,
+        permission_classes=(IsAuthenticated, IsOwnerOrReadOnly, ),
+    )
+    def me(self, request) -> Response:
         if request.method == 'GET':
             serializer = self.get_serializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -128,12 +133,12 @@ class UserViewSet(viewsets.ModelViewSet):
 def register_user(request):
     serializer = CreateProfileSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data['email']
-    user = Profile.objects.get_or_create(email=email)
+    email = serializer.data['email']
+    user = Profile.objects.get_or_create(**serializer.data)
     code = default_token_generator.make_token(user[0])
     send_mail('Confirmation code', code,
-              None, [email], )
-    return Response(data='Mail with confirmation code created.',
+              getattr(settings, "DEFAULT_FROM_EMAIL"), [email], )
+    return Response(data=serializer.data,
                     status=status.HTTP_200_OK)
 
 
@@ -142,15 +147,11 @@ def register_user(request):
 def retrieve_token(request):
     serializer = RetrieveTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    data = serializer.validated_data
-    username = data['email'].split('@')[0]
-    user = Profile.objects.get(email=data['email'])
-    if not user:
-        user = Profile.objects.create(username=username, email=data['email'])
+    data = serializer.data
+    user = get_object_or_404(Profile, email=data['email'])
     if default_token_generator.check_token(user, data['confirmation_code']):
-        token = 'token: ' + str(RefreshToken.for_user(user).access_token)
+        token = {'token': str(RefreshToken.for_user(user).access_token)}
         return Response(data=token,
                         status=status.HTTP_200_OK)
-    else:
-        return Response(data={'confirmation_code': ['not valid', ]},
-                        status=status.HTTP_400_BAD_REQUEST)
+    return Response(data={'confirmation_code': 'not valid'},
+                    status=status.HTTP_400_BAD_REQUEST)

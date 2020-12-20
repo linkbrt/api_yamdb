@@ -98,30 +98,35 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ProfileSerializer(serializers.ModelSerializer):
+class FullProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ('first_name', 'last_name', 'username',
                   'email', 'bio', 'role')
 
 
+class BaseProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('first_name', 'last_name', 'username',
+                  'email', 'bio', 'role')
+        read_only_fields = ('role', )
+
+
 class CreateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('email', 'username')
+
+
+class RetrieveTokenSerializer(serializers.ModelSerializer):
     """
     Default email field raise exception
     if user with this email already exists
     """
     email = serializers.CharField(validators=[EmailValidator])
-
-    class Meta:
-        model = Profile
-        fields = ('email', )
-
-
-class RetrieveTokenSerializer(serializers.ModelSerializer):
-    """Just like in CreateProfileSerializer"""
-    email = serializers.CharField(validators=[EmailValidator])
     confirmation_code = serializers.CharField()
 
     class Meta:
         model = Profile
-        fields = ('email', 'confirmation_code', )
+        fields = ('email', 'confirmation_code')
