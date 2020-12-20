@@ -75,10 +75,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrStaffOrReadOnly, )
 
-    def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        queryset = title.reviews.all()
-        return queryset
+    def get_queryset(self) -> QuerySet:
+        return get_title(self.kwargs['title_id']).reviews.all()
 
     def perform_create(self, serializer) -> None:
         title = get_title(self.kwargs['title_id'])
