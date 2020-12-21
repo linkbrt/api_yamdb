@@ -1,14 +1,11 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 import datetime
 
 
 def year_validator(value):
-    current_year = datetime.date.today().year
-    MinValueValidator(1700)
-    MaxValueValidator(current_year)
-    RegexValidator(
-                regex=r"\d\d\d\d",
-                message='Year must be 4 digits',
-                code='invalid_year'
-            )
+    if value < 1700 or value > datetime.datetime.now().year:
+        raise ValidationError(
+            _('%(value)s is not a correcrt year!'),
+            params={'value': value},
+        )
