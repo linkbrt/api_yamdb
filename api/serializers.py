@@ -92,7 +92,7 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class FullProfileSerializer(serializers.ModelSerializer):
+class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ('first_name', 'last_name', 'username',

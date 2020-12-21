@@ -15,11 +15,11 @@ from .filters import TitleFilter
 from .models import Category, Genre, Profile, Review, Title
 from .permissions import (IsAdminOrDeny, IsAdminOrReadOnly, IsOwnerOrReadOnly,
                           IsOwnerOrStaffOrReadOnly)
-from .serializers import (BaseProfileSerializer, CategorieSerializer,
-                          CommentSerializer, CreateProfileSerializer,
-                          CreateTitleSerializer, FullProfileSerializer,
-                          GenreSerializer, RetrieveTokenSerializer,
-                          ReviewSerializer, TitleSerializer)
+from .serializers import (CategorieSerializer, CommentSerializer,
+                          CreateProfileSerializer, CreateTitleSerializer,
+                          GenreSerializer, ProfileSerializer,
+                          RetrieveTokenSerializer, ReviewSerializer,
+                          TitleSerializer)
 
 
 class BaseListCreateDestroyViewSet(
@@ -100,16 +100,11 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = Profile.objects.all()
-    serializer_class = BaseProfileSerializer
+    serializer_class = ProfileSerializer
     lookup_field = 'username'
     permission_classes = (IsAuthenticated, IsAdminOrDeny, )
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['username']
-
-    def get_serializer_class(self):
-        if self.request.user.is_staff_user:
-            return FullProfileSerializer
-        return super().get_serializer_class()
 
     @decorators.action(
         methods=('GET', 'PATCH'),
@@ -120,11 +115,12 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = self.get_serializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        role = request.user.role
         serializer = self.get_serializer(
             instance=request.user, data=request.data,
             partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=role)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
@@ -134,7 +130,8 @@ def register_user(request):
     serializer = CreateProfileSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     email = serializer.data['email']
-    user = Profile.objects.get_or_create(**serializer.data)
+    username = serializer.data['username']
+    user = Profile.objects.get_or_create(email=email, username=username)
     code = default_token_generator.make_token(user[0])
     send_mail('Confirmation code', code,
               getattr(settings, "DEFAULT_FROM_EMAIL"), [email], )
@@ -150,7 +147,8 @@ def retrieve_token(request):
     data = serializer.data
     user = get_object_or_404(Profile, email=data['email'])
     if default_token_generator.check_token(user, data['confirmation_code']):
-        token = {'token': str(RefreshToken.for_user(user).access_token)}
+        token = RefreshToken.for_user(user)
+        token = {'token': token.access_token}
         return Response(data=token,
                         status=status.HTTP_200_OK)
     return Response(data={'confirmation_code': 'not valid'},
