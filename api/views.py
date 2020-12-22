@@ -1,8 +1,9 @@
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.db.models.query import QuerySet
 from django.shortcuts import get_object_or_404
-from django.db.models import Avg
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (decorators, filters, generics, mixins, permissions,
                             status, viewsets)
@@ -67,23 +68,17 @@ class TitlesViewSet(viewsets.ModelViewSet):
         return CreateTitleSerializer
 
 
-def get_title(title_id) -> Title:
-    return get_object_or_404(Title, pk=title_id)
-
-
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,
                           IsOwnerOrStaffOrReadOnly, )
 
     def get_queryset(self) -> QuerySet:
-        return get_object_or_404(
-                    Title,
-                    pk=self.kwargs['title_id']
-                ).reviews.all()
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        return title.reviews.all()
 
     def perform_create(self, serializer) -> None:
-        title = get_title(self.kwargs['title_id'])
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 
 
@@ -93,14 +88,12 @@ class CommentViewSet(viewsets.ModelViewSet):
                           IsOwnerOrStaffOrReadOnly, )
 
     def get_queryset(self) -> QuerySet:
-        review = get_object_or_404(
-            Review, pk=self.kwargs.get('review_id', 'title_id'))
-        return review.comments.all() # noqa
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
+        return review.comments.all()
 
     def perform_create(self, serializer) -> None:
-        title = get_title(self.kwargs['title_id'])
-        review = get_object_or_404(
-            Review, pk=self.kwargs.get('review_id', 'title_id'))
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        review = get_object_or_404(Review, pk=self.kwargs.get('review_id'))
         serializer.save(
             author=self.request.user, title=title, review=review)
 
@@ -113,21 +106,21 @@ class UserViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['username']
 
-    def get_queryset(self) -> QuerySet:
-        return super().get_queryset().order_by('-id')
-
     @decorators.action(
-        methods=('GET', 'PATCH', ), detail=False,
-        permission_classes=(IsAuthenticated, IsOwnerOrReadOnly, ))
-    def me(self, request, *args, **kwargs) -> Response:
+        methods=('GET', 'PATCH'),
+        detail=False,
+        permission_classes=(IsAuthenticated, IsOwnerOrReadOnly, ),
+    )
+    def me(self, request) -> Response:
         if request.method == 'GET':
             serializer = self.get_serializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        role = request.user.role
         serializer = self.get_serializer(
             instance=request.user, data=request.data,
             partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=role)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
@@ -136,12 +129,13 @@ class UserViewSet(viewsets.ModelViewSet):
 def register_user(request):
     serializer = CreateProfileSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = serializer.validated_data['email']
-    user = Profile.objects.get_or_create(email=email)
+    email = serializer.data['email']
+    username = serializer.data['username']
+    user = Profile.objects.get_or_create(email=email, username=username)
     code = default_token_generator.make_token(user[0])
     send_mail('Confirmation code', code,
-              None, [email], )
-    return Response(data='Mail with confirmation code created.',
+              getattr(settings, "DEFAULT_FROM_EMAIL"), [email], )
+    return Response(data=serializer.data,
                     status=status.HTTP_200_OK)
 
 
@@ -150,15 +144,12 @@ def register_user(request):
 def retrieve_token(request):
     serializer = RetrieveTokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    data = serializer.validated_data
-    username = data['email'].split('@')[0]
-    user = Profile.objects.get(email=data['email'])
-    if not user:
-        user = Profile.objects.create(username=username, email=data['email'])
+    data = serializer.data
+    user = get_object_or_404(Profile, email=data['email'])
     if default_token_generator.check_token(user, data['confirmation_code']):
-        token = 'token: ' + str(RefreshToken.for_user(user).access_token)
+        token = RefreshToken.for_user(user)
+        token = {'token': token.access_token}
         return Response(data=token,
                         status=status.HTTP_200_OK)
-    else:
-        return Response(data={'confirmation_code': ['not valid', ]},
-                        status=status.HTTP_400_BAD_REQUEST)
+    return Response(data={'confirmation_code': 'not valid'},
+                    status=status.HTTP_400_BAD_REQUEST)

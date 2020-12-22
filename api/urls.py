@@ -20,13 +20,12 @@ v1_router.register(
     r'titles/(?P<title_id>\d+)/reviews',
     ReviewViewSet, basename='review')
 
+auth_urlpatterns = [
+    path('email/', register_user),
+    path('token/', retrieve_token),
+]
+
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
+    path('v1/auth/', include(auth_urlpatterns)),
 ]
-
-auth_urlpatterns = [
-    path('v1/auth/email/', register_user),
-    path('v1/auth/token/', retrieve_token),
-]
-
-urlpatterns += auth_urlpatterns # noqa
